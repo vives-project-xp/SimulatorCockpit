@@ -8,8 +8,8 @@
 
 
 ## belangerijkste values route in property browser
-speed = /instrumentation/airspeed-indicator
-fuel level = /consumables/fuel/total-fuel-lbs£
-altitude = /instrumentation/altimeter/indicated-altitude-f
-direction = /instrumentation/heading-indicator/
-heading = /orientation/heading-deg/         
+- speed = /instrumentation/airspeed-indicator
+- fuel level = /consumables/fuel/total-fuel-lbs£
+- altitude = /instrumentation/altimeter/indicated-altitude-f
+- direction = /instrumentation/heading-indicator/
+- heading = /orientation/heading-deg/         
