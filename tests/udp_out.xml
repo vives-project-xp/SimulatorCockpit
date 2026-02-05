@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<PropertyList>
+  <generic>
+    <output>
+      <line_separator>newline</line_separator>
+
+      <chunk>
+        <node>/sim/time/elapsed-sec</node>
+        <type>float</type>
+        <format>TIME=%f</format>
+      </chunk>
+
+    </output>
+  </generic>
+</PropertyList>
