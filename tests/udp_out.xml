@@ -3,11 +3,18 @@
   <generic>
     <output>
       <line_separator>newline</line_separator>
+      <var_separator>space</var_separator>
 
       <chunk>
-        <node>/sim/time/elapsed-sec</node>
+	<node>/instrumentation/airspeed-indicator/indicated-speed-kt</node>
         <type>float</type>
-        <format>TIME=%f</format>
+        <format>AIRSPEED=%6.2f</format>
+      </chunk>
+
+      <chunk>
+        <node>/orientation/heading-deg</node>
+        <type>float</type>
+        <format>HEADING=%6.2f</format>
       </chunk>
 
     </output>
