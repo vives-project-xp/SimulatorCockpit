@@ -1,6 +1,5 @@
 
 
-## ✅ ZO LOS JE HET OP (DEFINITIEF)
 
 ### 🧱 Stap 1 — Verplaats je XML-bestand
 
@@ -13,7 +12,7 @@ udp_out.xml
 en zet het **hier**:
 
 ```
-C:/Users/michi/FlightGear/Downloads/fgdata_2024_1/Protocol/udp_out.xml
+C:/Users/user/FlightGear/Downloads/fgdata_2024_1/Protocol/udp_out.xml
 ```
 
 ⚠️ De naam **udp_out.xml** onthouden.
@@ -29,6 +28,13 @@ Gebruik nu **exact dit**:
 ```
 
 🔑 Let op:
+✅ Waar moet je staan in de terminal?
+
+Op jouw pc (zie eerdere output) staat FlightGear hier:
+
+```powershell
+C:\Program Files\FlightGear 2024.1\bin
+```
 
 * laatste argument = `udp_out`
 * **geen** `.xml`
@@ -36,24 +42,9 @@ Gebruik nu **exact dit**:
 
 ---
 
-## 🧱 Stap 3 — Python-script (dit is al correct)
+## 🧱 Stap 3 — run Python-script 
 
-```python
-import socket
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(("127.0.0.1", 5500))
-
-print("Wachten op data...")
-
-while True:
-    data, _ = sock.recvfrom(1024)
-    print(data.decode(errors="ignore"))
-```
-
-Start dit **na** FlightGear.
-
----
 
 
 
