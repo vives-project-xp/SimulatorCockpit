@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<PropertyList>
+  <generic>
+    <input>
+      <line_separator>newline</line_separator>
+
+      <chunk>
+        <node>/controls/engines/current-engine/throttle</node>
+        <type>float</type>
+        <format>THROTTLE=%f</format>
+      </chunk>
+
+      <chunk>
+        <node>/autopilot/settings/heading-bug-deg</node>
+        <type>float</type>
+        <format>HEADING_BUG=%f</format>
+      </chunk>
+
+    </input>
+  </generic>
+</PropertyList>
