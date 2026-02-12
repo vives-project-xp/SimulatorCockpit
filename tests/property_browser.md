@@ -13,3 +13,4 @@
 - altitude = /instrumentation/altimeter/indicated-altitude-f
 - direction = /instrumentation/heading-indicator/
 - heading = /orientation/heading-deg/         
+- Vertical Speed Indicator /instrumentation/vertical-speed-indicator/indicated-speed-fpm
