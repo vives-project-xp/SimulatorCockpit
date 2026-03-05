@@ -9,19 +9,6 @@ TOPIC_MONITOR = "#"
 
 battery_state = 0
 
-# MQTT setup
-client = mqtt.Client()
-
-def on_message(client, userdata, msg):
-    message = msg.payload.decode()
-    log.insert(tk.END, f"{msg.topic}: {message}\n")
-    log.see(tk.END)
-
-client.on_message = on_message
-client.connect(BROKER, 1883, 60)
-client.subscribe(TOPIC_MONITOR)
-client.loop_start()
-
 # GUI
 root = tk.Tk()
 root.title("COCKPIT CONTROL PANEL")
@@ -78,5 +65,21 @@ throttle_slider.pack(pady=20)
 # 📡 Log window
 log = tk.Text(frame, height=10, width=80, font=("Arial", 12))
 log.pack(pady=20)
+
+# ---------------- MQTT ----------------
+
+client = mqtt.Client()
+
+def on_message(client, userdata, msg):
+    message = msg.payload.decode()
+    log.insert(tk.END, f"{msg.topic}: {message}\n")
+    log.see(tk.END)
+
+client.on_message = on_message
+client.connect(BROKER, 1883, 60)
+client.subscribe(TOPIC_MONITOR)
+client.loop_start()
+
+# --------------------------------------
 
 root.mainloop()
