@@ -1,21 +1,27 @@
 <?xml version="1.0"?>
 <PropertyList>
+
   <generic>
     <input>
+      <binary_mode>false</binary_mode>
       <line_separator>newline</line_separator>
+      <var_separator>:</var_separator>
 
+      <!-- 1ste waarde -->
       <chunk>
-        <node>/controls/engines/current-engine/throttle</node>
-        <type>float</type>
-        <format>THROTTLE=%f</format>
+        <name>Battery</name>
+        <node>/controls/switches/master-bat</node>
+        <type>integer</type>
       </chunk>
 
+      <!-- 2de waarde -->
       <chunk>
-        <node>/autopilot/settings/heading-bug-deg</node>
+        <name>Throttle</name>
+        <node>/controls/engines/engine[0]/throttle</node>
         <type>float</type>
-        <format>HEADING_BUG=%f</format>
       </chunk>
 
     </input>
   </generic>
+
 </PropertyList>
