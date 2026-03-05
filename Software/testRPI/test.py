@@ -72,6 +72,7 @@ def update_needle(canvas, speed):
 # =========================
 # MQTT CALLBACK
 # =========================
+log = tk.Text(frame, height=10, width=80, font=("Arial", 12))
 def on_message(client, userdata, msg):
     message = msg.payload.decode()
 
@@ -160,7 +161,7 @@ update_needle(gauge_canvas, 0)
 # -------------------------
 # Log window
 # -------------------------
-log = tk.Text(frame, height=10, width=80, font=("Arial", 12))
+
 log.pack(pady=20)
 
 root.mainloop()
