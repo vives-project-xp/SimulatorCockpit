@@ -6,12 +6,14 @@
       <var_separator>newline</var_separator>
 
       <chunk>
+        <name>Airspeed</name>
         <node>/instrumentation/airspeed-indicator/indicated-speed-kt</node>
         <type>float</type>
         <format>AIRSPEED=%f</format>
       </chunk>
 
       <chunk>
+        <name>Heading</name>
         <node>/orientation/heading-deg</node>
         <type>float</type>
         <format>HEADING=%f</format>
