@@ -5,12 +5,10 @@ import time
 # ========================
 # CONFIG
 # ========================
-BROKER = "10.10.232.162"   # of IP van je broker
+BROKER = "10.10.232.162"
 TOPIC_BATTERY = "cockpit/input/battery"
 
 BUTTON_PIN = 17
-
-battery_state = 0
 
 # ========================
 # GPIO SETUP
@@ -27,16 +25,21 @@ client.loop_start()
 
 print("Battery hardware control started...")
 
-# ========================
-# BUTTON LOOP
-# ========================
+last_state = None  # onthoud vorige stand
+
 try:
     while True:
-        if GPIO.input(BUTTON_PIN) == GPIO.LOW:  # knop ingedrukt
-            battery_state = 1 - battery_state
+        current_gpio = GPIO.input(BUTTON_PIN)
+
+        # Omdat we PULL_UP gebruiken:
+        # LOW = 0 (schakelaar naar GND)
+        # HIGH = 1
+        battery_state = 1 if current_gpio == GPIO.HIGH else 0
+
+        if battery_state != last_state:
             client.publish(TOPIC_BATTERY, str(battery_state))
             print("Battery:", battery_state)
-            time.sleep(0.3)  # debounce delay
+            last_state = battery_state
 
         time.sleep(0.05)
 
