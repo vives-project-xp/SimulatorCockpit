@@ -7,7 +7,7 @@ BROKER = "localhost"
 
 TOPIC_THROTTLE = "cockpit/input/throttle"
 TOPIC_BATTERY = "cockpit/input/battery"
-TOPIC_AIRSPEED = "cockpit/input/airspeed"  # topic voor snelheid
+TOPIC_AIRSPEED = "cockpit/airspeed"  # terug naar het originele topic
 TOPIC_MONITOR = "#"
 
 # ---------------- globale variabelen ----------------
