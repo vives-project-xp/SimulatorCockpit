@@ -2,6 +2,8 @@ import socket
 import paho.mqtt.client as mqtt
 import hashlib
 import threading
+import time
+
 
 # =========================
 # CONFIG
@@ -96,10 +98,10 @@ def udp_listener():
                 continue
 
             if key == "AIRSPEED":
-                mqtt_client.publish("cockpit/airspeed", value)
+                mqtt_client.publish("cockpit/airspeed", value, qos=0)
                 # print(f"[MQTT] AIRSPEED = {value}")
             elif key == "HEADING":
-                mqtt_client.publish("cockpit/heading", value)
+                mqtt_client.publish("cockpit/heading", value,qos=0)
                 # print(f"[MQTT] HEADING = {value0.8}")
 
 # Start UDP listener in aparte thread
@@ -109,6 +111,6 @@ udp_thread.start()
 # Houd script draaiende
 try:
     while True:
-        pass
+        time.sleep(0.1)
 except KeyboardInterrupt:
     print("Stopping bridge")
