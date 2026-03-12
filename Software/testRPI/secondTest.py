@@ -7,11 +7,13 @@ BROKER = "localhost"
 
 TOPIC_THROTTLE = "cockpit/input/throttle"
 TOPIC_BATTERY = "cockpit/input/battery"
+TOPIC_AIRSPEED = "cockpit/input/airspeed"  # topic voor snelheid
 TOPIC_MONITOR = "#"
 
 # ---------------- globale variabelen ----------------
 battery_state = 0
-airspeed_value = 0  # wordt gebruikt door de gauge
+airspeed_value = 0.0  # knots
+throttle_value = 0.0  # motorvermogen 0-1
 
 # ---------------- GUI ----------------
 root = tk.Tk()
@@ -48,15 +50,10 @@ battery_btn.pack(pady=20)
 
 # ---------------- Throttle slider ----------------
 def send_throttle(value):
-    global airspeed_value
+    global throttle_value
     throttle_value = round(float(value), 2)
-
-    # publiceer via MQTT
     client.publish(TOPIC_THROTTLE, str(throttle_value))
     throttle_label.config(text=f"THROTTLE: {throttle_value}")
-
-    # Simuleer airspeed afhankelijk van throttle (0-1 -> 0-200 knots)
-    airspeed_value = throttle_value * 200
 
 throttle_label = tk.Label(frame, text="THROTTLE: 0.0", font=("Arial", 30))
 throttle_label.pack(pady=10)
@@ -71,6 +68,26 @@ throttle_slider = tk.Scale(frame,
                            font=("Arial", 20))
 throttle_slider.pack(pady=20)
 
+# ---------------- Airspeed slider (knots) ----------------
+def send_airspeed(value):
+    global airspeed_value
+    airspeed_value = min(max(float(value), 0), 160)  # max 160 knots
+    airspeed_label.config(text=f"AIRSPEED: {airspeed_value} knots")
+    client.publish(TOPIC_AIRSPEED, str(airspeed_value))
+
+airspeed_label = tk.Label(frame, text="AIRSPEED: 0.0 knots", font=("Arial", 30))
+airspeed_label.pack(pady=10)
+
+airspeed_slider = tk.Scale(frame,
+                           from_=0,
+                           to=160,
+                           resolution=1,
+                           orient=tk.HORIZONTAL,
+                           length=600,
+                           command=send_airspeed,
+                           font=("Arial", 20))
+airspeed_slider.pack(pady=20)
+
 # ---------------- AIRSPEED GAUGE ----------------
 GAUGE_SIZE = 450
 CENTER = GAUGE_SIZE // 2
@@ -80,7 +97,7 @@ gauge_canvas = tk.Canvas(frame, width=GAUGE_SIZE, height=GAUGE_SIZE, bg="black")
 gauge_canvas.pack(pady=30)
 
 def speed_to_angle(speed):
-    return -210 + (speed / 200) * 240  # 0-200 knots → -210° tot 30°
+    return -210 + (speed / 160) * 240  # 0-160 knots → -210° tot 30°
 
 def draw_gauge():
     gauge_canvas.delete("all")
@@ -117,7 +134,7 @@ def draw_gauge():
     )
 
     # Tick marks + numbers
-    for speed in range(0, 201, 10):
+    for speed in range(0, 161, 10):
         angle = math.radians(speed_to_angle(speed))
         outer = RADIUS
         inner = RADIUS - 20 if speed % 20 == 0 else RADIUS - 10
@@ -161,7 +178,7 @@ draw_gauge()
 # ---------------- GUI update loop ----------------
 def update_gauge():
     draw_needle(airspeed_value)
-    root.after(50, update_gauge)  # update elke 50 ms
+    root.after(50, update_gauge)
 
 update_gauge()
 
@@ -176,9 +193,10 @@ def on_message(client, userdata, msg):
     global airspeed_value
     message = msg.payload.decode()
 
-    if msg.topic == "cockpit/airspeed":
+    if msg.topic == TOPIC_AIRSPEED:
         try:
-            airspeed_value = float(message)
+            airspeed_value = min(max(float(message), 0), 160)
+            airspeed_slider.set(airspeed_value)
         except:
             pass
 
