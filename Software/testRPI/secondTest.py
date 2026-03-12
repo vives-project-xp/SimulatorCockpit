@@ -2,7 +2,6 @@ import tkinter as tk
 import paho.mqtt.client as mqtt
 import math
 
-# ---------------- MQTT instellingen ----------------
 BROKER = "localhost"
 
 TOPIC_THROTTLE = "cockpit/input/throttle"
@@ -10,12 +9,10 @@ TOPIC_BATTERY = "cockpit/input/battery"
 TOPIC_AIRSPEED = "cockpit/airspeed"
 TOPIC_MONITOR = "#"
 
-# ---------------- globale variabelen ----------------
 battery_state = 0
 airspeed_value = 0.0  # knots
 throttle_value = 0.0  # motorvermogen 0-1
 
-# ---------------- GUI ----------------
 root = tk.Tk()
 root.title("COCKPIT CONTROL PANEL")
 root.attributes("-fullscreen", True)
@@ -26,7 +23,7 @@ frame.pack(expand=True)
 title = tk.Label(frame, text="COCKPIT CONTROL", font=("Arial", 40))
 title.pack(pady=20)
 
-# ---------------- Battery toggle ----------------
+# ---------------- Battery ----------------
 def toggle_battery():
     global battery_state
     battery_state = 1 - battery_state
@@ -39,16 +36,11 @@ def update_battery_ui():
     else:
         battery_btn.config(text="BATTERY: OFF", bg="red")
 
-battery_btn = tk.Button(frame,
-                        text="BATTERY: OFF",
-                        command=toggle_battery,
-                        font=("Arial", 30),
-                        width=15,
-                        height=2,
-                        bg="red")
+battery_btn = tk.Button(frame, text="BATTERY: OFF", command=toggle_battery,
+                        font=("Arial", 30), width=15, height=2, bg="red")
 battery_btn.pack(pady=20)
 
-# ---------------- Throttle slider ----------------
+# ---------------- Throttle ----------------
 def send_throttle(value):
     global throttle_value
     throttle_value = round(float(value), 2)
@@ -58,14 +50,9 @@ def send_throttle(value):
 throttle_label = tk.Label(frame, text="THROTTLE: 0.0", font=("Arial", 30))
 throttle_label.pack(pady=10)
 
-throttle_slider = tk.Scale(frame,
-                           from_=0,
-                           to=1,
-                           resolution=0.01,
-                           orient=tk.HORIZONTAL,
-                           length=600,
-                           command=send_throttle,
-                           font=("Arial", 20))
+throttle_slider = tk.Scale(frame, from_=0, to=1, resolution=0.01,
+                           orient=tk.HORIZONTAL, length=600,
+                           command=send_throttle, font=("Arial", 20))
 throttle_slider.pack(pady=20)
 
 # ---------------- AIRSPEED GAUGE ----------------
@@ -77,7 +64,7 @@ gauge_canvas = tk.Canvas(frame, width=GAUGE_SIZE, height=GAUGE_SIZE, bg="black")
 gauge_canvas.pack(pady=30)
 
 def speed_to_angle(speed):
-    # 0 - 180 knots mapped to -210° → 30°
+    # 0 - 180 knots mapped van -210° (linksonder) naar 30° (rechtsonder)
     return -210 + (speed / 180) * 240
 
 def draw_gauge():
@@ -90,39 +77,28 @@ def draw_gauge():
         outline="white", width=4
     )
 
-    # Bereken start en extent voor elke kleur op basis van speed_to_angle
-    def angle_for(speed):
-        return speed_to_angle(speed)
+    # Kleurbanden netjes boven de schaal
+    # We tekenen eerst de arcs **achter de tick marks**
+    def arc_coords():
+        return (CENTER-RADIUS, CENTER-RADIUS, CENTER+RADIUS, CENTER+RADIUS)
 
     # Groen: 0-120
-    start_angle = angle_for(0)
-    end_angle = angle_for(120)
-    gauge_canvas.create_arc(
-        CENTER-RADIUS, CENTER-RADIUS,
-        CENTER+RADIUS, CENTER+RADIUS,
-        start=start_angle, extent=end_angle-start_angle,
-        style="arc", outline="lime", width=18
-    )
+    start = speed_to_angle(0)
+    end = speed_to_angle(120)
+    gauge_canvas.create_arc(*arc_coords(), start=start, extent=end-start,
+                            style="arc", outline="lime", width=18)
 
     # Geel: 120-160
-    start_angle = angle_for(120)
-    end_angle = angle_for(160)
-    gauge_canvas.create_arc(
-        CENTER-RADIUS, CENTER-RADIUS,
-        CENTER+RADIUS, CENTER+RADIUS,
-        start=start_angle, extent=end_angle-start_angle,
-        style="arc", outline="yellow", width=18
-    )
+    start = speed_to_angle(120)
+    end = speed_to_angle(160)
+    gauge_canvas.create_arc(*arc_coords(), start=start, extent=end-start,
+                            style="arc", outline="yellow", width=18)
 
     # Rood: 160-180
-    start_angle = angle_for(160)
-    end_angle = angle_for(180)
-    gauge_canvas.create_arc(
-        CENTER-RADIUS, CENTER-RADIUS,
-        CENTER+RADIUS, CENTER+RADIUS,
-        start=start_angle, extent=end_angle-start_angle,
-        style="arc", outline="red", width=18
-    )
+    start = speed_to_angle(160)
+    end = speed_to_angle(180)
+    gauge_canvas.create_arc(*arc_coords(), start=start, extent=end-start,
+                            style="arc", outline="red", width=18)
 
     # Tick marks + numbers (0-180 elke 20 knots)
     for speed in range(0, 181, 20):
@@ -137,31 +113,16 @@ def draw_gauge():
 
         tx = CENTER + (RADIUS-50) * math.cos(angle)
         ty = CENTER + (RADIUS-50) * math.sin(angle)
-        gauge_canvas.create_text(
-            tx, ty,
-            text=str(speed),
-            fill="white",
-            font=("Arial", 14, "bold")
-        )
+        gauge_canvas.create_text(tx, ty, text=str(speed),
+                                fill="white", font=("Arial", 14, "bold"))
 
 def draw_needle(speed):
     gauge_canvas.delete("needle")
     angle = math.radians(speed_to_angle(speed))
     x = CENTER + (RADIUS-50) * math.cos(angle)
     y = CENTER + (RADIUS-50) * math.sin(angle)
-    gauge_canvas.create_line(
-        CENTER, CENTER,
-        x, y,
-        fill="red",
-        width=4,
-        tags="needle"
-    )
-    gauge_canvas.create_oval(
-        CENTER-8, CENTER-8,
-        CENTER+8, CENTER+8,
-        fill="white",
-        tags="needle"
-    )
+    gauge_canvas.create_line(CENTER, CENTER, x, y, fill="red", width=4, tags="needle")
+    gauge_canvas.create_oval(CENTER-8, CENTER-8, CENTER+8, CENTER+8, fill="white", tags="needle")
 
 draw_gauge()
 
@@ -185,7 +146,6 @@ def on_message(client, userdata, msg):
 
     if msg.topic == TOPIC_AIRSPEED:
         try:
-            # max 180 knots voor gauge
             airspeed_value = min(max(float(message), 0), 180)
         except:
             pass
@@ -198,5 +158,4 @@ client.connect(BROKER, 1883, 60)
 client.subscribe(TOPIC_MONITOR)
 client.loop_start()
 
-# ---------------- Start GUI ----------------
 root.mainloop()
