@@ -44,6 +44,9 @@ C:\Program Files\FlightGear 2024.1\bin
 
 ## 🧱 Stap 3 — run Python-script 
 
+udp_in_mqqt_tcp_out_mqtt.py
+
+
 
 
 
