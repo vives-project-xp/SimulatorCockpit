@@ -90,27 +90,37 @@ def draw_gauge():
         outline="white", width=4
     )
 
-    # Green arc: 0-120
+    # Bereken start en extent voor elke kleur op basis van speed_to_angle
+    def angle_for(speed):
+        return speed_to_angle(speed)
+
+    # Groen: 0-120
+    start_angle = angle_for(0)
+    end_angle = angle_for(120)
     gauge_canvas.create_arc(
         CENTER-RADIUS, CENTER-RADIUS,
         CENTER+RADIUS, CENTER+RADIUS,
-        start=-210, extent=160,
+        start=start_angle, extent=end_angle-start_angle,
         style="arc", outline="lime", width=18
     )
 
-    # Yellow arc: 120-160
+    # Geel: 120-160
+    start_angle = angle_for(120)
+    end_angle = angle_for(160)
     gauge_canvas.create_arc(
         CENTER-RADIUS, CENTER-RADIUS,
         CENTER+RADIUS, CENTER+RADIUS,
-        start=-50, extent=80,
+        start=start_angle, extent=end_angle-start_angle,
         style="arc", outline="yellow", width=18
     )
 
-    # Red arc: 160-180
+    # Rood: 160-180
+    start_angle = angle_for(160)
+    end_angle = angle_for(180)
     gauge_canvas.create_arc(
         CENTER-RADIUS, CENTER-RADIUS,
         CENTER+RADIUS, CENTER+RADIUS,
-        start=30, extent=30,
+        start=start_angle, extent=end_angle-start_angle,
         style="arc", outline="red", width=18
     )
 
