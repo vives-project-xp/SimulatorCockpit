@@ -7,7 +7,7 @@ BROKER = "localhost"
 
 TOPIC_THROTTLE = "cockpit/input/throttle"
 TOPIC_BATTERY = "cockpit/input/battery"
-TOPIC_AIRSPEED = "cockpit/airspeed"  # terug naar het originele topic
+TOPIC_AIRSPEED = "cockpit/airspeed"
 TOPIC_MONITOR = "#"
 
 # ---------------- globale variabelen ----------------
@@ -68,36 +68,17 @@ throttle_slider = tk.Scale(frame,
                            font=("Arial", 20))
 throttle_slider.pack(pady=20)
 
-# ---------------- Airspeed slider (knots) ----------------
-def send_airspeed(value):
-    global airspeed_value
-    airspeed_value = min(max(float(value), 0), 160)  # max 160 knots
-    airspeed_label.config(text=f"AIRSPEED: {airspeed_value} knots")
-    client.publish(TOPIC_AIRSPEED, str(airspeed_value))
-
-airspeed_label = tk.Label(frame, text="AIRSPEED: 0.0 knots", font=("Arial", 30))
-airspeed_label.pack(pady=10)
-
-airspeed_slider = tk.Scale(frame,
-                           from_=0,
-                           to=160,
-                           resolution=1,
-                           orient=tk.HORIZONTAL,
-                           length=600,
-                           command=send_airspeed,
-                           font=("Arial", 20))
-airspeed_slider.pack(pady=20)
-
 # ---------------- AIRSPEED GAUGE ----------------
-GAUGE_SIZE = 450
+GAUGE_SIZE = 500
 CENTER = GAUGE_SIZE // 2
-RADIUS = 180
+RADIUS = 200
 
 gauge_canvas = tk.Canvas(frame, width=GAUGE_SIZE, height=GAUGE_SIZE, bg="black")
 gauge_canvas.pack(pady=30)
 
 def speed_to_angle(speed):
-    return -210 + (speed / 160) * 240  # 0-160 knots → -210° tot 30°
+    # 0 - 180 knots mapped to -210° → 30°
+    return -210 + (speed / 180) * 240
 
 def draw_gauge():
     gauge_canvas.delete("all")
@@ -109,50 +90,49 @@ def draw_gauge():
         outline="white", width=4
     )
 
-    # Green arc (normal range)
+    # Green arc: 0-120
     gauge_canvas.create_arc(
         CENTER-RADIUS, CENTER-RADIUS,
         CENTER+RADIUS, CENTER+RADIUS,
-        start=-150, extent=120,
+        start=-210, extent=160,
         style="arc", outline="lime", width=18
     )
 
-    # Yellow arc (caution)
+    # Yellow arc: 120-160
     gauge_canvas.create_arc(
         CENTER-RADIUS, CENTER-RADIUS,
         CENTER+RADIUS, CENTER+RADIUS,
-        start=-30, extent=40,
+        start=-50, extent=80,
         style="arc", outline="yellow", width=18
     )
 
-    # Red line (VNE)
+    # Red arc: 160-180
     gauge_canvas.create_arc(
         CENTER-RADIUS, CENTER-RADIUS,
         CENTER+RADIUS, CENTER+RADIUS,
-        start=10, extent=3,
+        start=30, extent=30,
         style="arc", outline="red", width=18
     )
 
-    # Tick marks + numbers
-    for speed in range(0, 161, 10):
+    # Tick marks + numbers (0-180 elke 20 knots)
+    for speed in range(0, 181, 20):
         angle = math.radians(speed_to_angle(speed))
         outer = RADIUS
-        inner = RADIUS - 20 if speed % 20 == 0 else RADIUS - 10
+        inner = RADIUS - 20
         x1 = CENTER + inner * math.cos(angle)
         y1 = CENTER + inner * math.sin(angle)
         x2 = CENTER + outer * math.cos(angle)
         y2 = CENTER + outer * math.sin(angle)
         gauge_canvas.create_line(x1, y1, x2, y2, fill="white", width=2)
 
-        if speed % 20 == 0:
-            tx = CENTER + (RADIUS-40) * math.cos(angle)
-            ty = CENTER + (RADIUS-40) * math.sin(angle)
-            gauge_canvas.create_text(
-                tx, ty,
-                text=str(speed),
-                fill="white",
-                font=("Arial", 14, "bold")
-            )
+        tx = CENTER + (RADIUS-50) * math.cos(angle)
+        ty = CENTER + (RADIUS-50) * math.sin(angle)
+        gauge_canvas.create_text(
+            tx, ty,
+            text=str(speed),
+            fill="white",
+            font=("Arial", 14, "bold")
+        )
 
 def draw_needle(speed):
     gauge_canvas.delete("needle")
@@ -195,8 +175,8 @@ def on_message(client, userdata, msg):
 
     if msg.topic == TOPIC_AIRSPEED:
         try:
-            airspeed_value = min(max(float(message), 0), 160)
-            airspeed_slider.set(airspeed_value)
+            # max 180 knots voor gauge
+            airspeed_value = min(max(float(message), 0), 180)
         except:
             pass
 
