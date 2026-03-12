@@ -1,6 +1,7 @@
 import tkinter as tk
 import paho.mqtt.client as mqtt
 import math
+import time
 
 BROKER = "localhost"
 
@@ -30,7 +31,7 @@ title.pack(pady=20)
 def toggle_battery():
     global battery_state
     battery_state = 1 - battery_state
-    client.publish(TOPIC_BATTERY, str(battery_state))
+    client.publish(TOPIC_BATTERY, str(battery_state), qos=1)
     update_battery_ui()
 
 def update_battery_ui():
@@ -53,10 +54,21 @@ battery_btn.pack(pady=20)
 
 # ---------------- THROTTLE ----------------
 
+last_sent_throttle = None
+last_send_time = 0
+
 def send_throttle(value):
-    global throttle_value
+    global throttle_value, last_sent_throttle, last_send_time
+
     throttle_value = round(float(value), 2)
-    client.publish(TOPIC_THROTTLE, str(throttle_value))
+
+    now = time.time()
+    if throttle_value != last_sent_throttle and (now - last_send_time) > 0.1:
+        client.publish(TOPIC_THROTTLE, str(throttle_value), qos=0)
+        throttle_label.config(text=f"THROTTLE: {throttle_value}")
+        last_sent_throttle = throttle_value
+        last_send_time = now
+    client.publish(TOPIC_THROTTLE, str(throttle_value), qos=0)
     throttle_label.config(text=f"THROTTLE: {throttle_value}")
 
 throttle_label = tk.Label(frame, text="THROTTLE: 0.0", font=("Arial", 30))
@@ -218,8 +230,28 @@ def on_message(client, userdata, msg):
         except:
             pass
 
-    log.insert(tk.END, f"{msg.topic}: {message}\n")
-    log.see(tk.END)
+    pending_logs = []
+
+    def on_message(client, userdata, msg):
+        global airspeed_value
+        message = msg.payload.decode()
+
+        if msg.topic == TOPIC_AIRSPEED:
+            try:
+                airspeed_value = min(max(float(message), 0), 180)
+            except:
+                pass
+
+        pending_logs.append(f"{msg.topic}: {message}")
+
+    def flush_logs():
+        while pending_logs:
+            line = pending_logs.pop(0)
+            log.insert(tk.END, line + "\n")
+            log.see(tk.END)
+        root.after(100, flush_logs)
+
+    flush_logs()
 
 client.on_message = on_message
 
