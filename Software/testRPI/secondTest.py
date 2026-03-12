@@ -68,8 +68,7 @@ def send_throttle(value):
         throttle_label.config(text=f"THROTTLE: {throttle_value}")
         last_sent_throttle = throttle_value
         last_send_time = now
-    client.publish(TOPIC_THROTTLE, str(throttle_value), qos=0)
-    throttle_label.config(text=f"THROTTLE: {throttle_value}")
+
 
 throttle_label = tk.Label(frame, text="THROTTLE: 0.0", font=("Arial", 30))
 throttle_label.pack(pady=10)
