@@ -5,7 +5,7 @@ import time
 # ========================
 # CONFIG
 # ========================
-BROKER = "10.10.232.162"
+BROKER = "localhost"
 TOPIC_BATTERY = "cockpit/input/battery"
 
 BUTTON_PIN = 17
