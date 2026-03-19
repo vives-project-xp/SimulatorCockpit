@@ -1,18 +1,22 @@
 import tkinter as tk
 import paho.mqtt.client as mqtt
 import math
-import time
 
 BROKER = "localhost"
 
 TOPIC_THROTTLE = "cockpit/input/throttle"
 TOPIC_BATTERY = "cockpit/input/battery"
 TOPIC_AIRSPEED = "cockpit/airspeed"
+TOPIC_HEADING = "cockpit/heading"
+TOPIC_ATTITUDE = "cockpit/attitude"
 TOPIC_MONITOR = "#"
 
 battery_state = 0
 airspeed_value = 0.0
-throttle_value = 0.0
+heading_value = 0.0
+display_heading = 0.0
+pitch = 0.0
+roll = 0.0
 
 # ---------------- WINDOW ----------------
 
@@ -20,243 +24,195 @@ root = tk.Tk()
 root.title("COCKPIT CONTROL PANEL")
 root.attributes("-fullscreen", True)
 
-frame = tk.Frame(root)
-frame.pack(expand=True)
+main_frame = tk.Frame(root)
+main_frame.pack(fill="both", expand=True)
 
-title = tk.Label(frame, text="COCKPIT CONTROL", font=("Arial", 40))
-title.pack(pady=20)
+top_frame = tk.Frame(main_frame)
+top_frame.pack(side="top", fill="both", expand=True)
 
-# ---------------- BATTERY ----------------
+bottom_frame = tk.Frame(main_frame)
+bottom_frame.pack(side="bottom")
 
-def toggle_battery():
-    global battery_state
-    battery_state = 1 - battery_state
-    client.publish(TOPIC_BATTERY, str(battery_state), qos=1)
-    update_battery_ui()
+# ================= AIRSPEED =================
 
-def update_battery_ui():
-    if battery_state == 1:
-        battery_btn.config(text="BATTERY: ON", bg="green")
-    else:
-        battery_btn.config(text="BATTERY: OFF", bg="red")
-
-battery_btn = tk.Button(
-    frame,
-    text="BATTERY: OFF",
-    command=toggle_battery,
-    font=("Arial", 30),
-    width=15,
-    height=2,
-    bg="red"
-)
-
-battery_btn.pack(pady=20)
-
-# ---------------- THROTTLE ----------------
-
-last_sent_throttle = None
-last_send_time = 0
-
-def send_throttle(value):
-    global throttle_value, last_sent_throttle, last_send_time
-
-    throttle_value = round(float(value), 2)
-
-    now = time.time()
-    if throttle_value != last_sent_throttle and (now - last_send_time) > 0.1:
-        client.publish(TOPIC_THROTTLE, str(throttle_value), qos=0)
-        throttle_label.config(text=f"THROTTLE: {throttle_value}")
-        last_sent_throttle = throttle_value
-        last_send_time = now
-
-
-throttle_label = tk.Label(frame, text="THROTTLE: 0.0", font=("Arial", 30))
-throttle_label.pack(pady=10)
-
-throttle_slider = tk.Scale(
-    frame,
-    from_=0,
-    to=1,
-    resolution=0.01,
-    orient=tk.HORIZONTAL,
-    length=600,
-    command=send_throttle,
-    font=("Arial", 20)
-)
-
-throttle_slider.pack(pady=20)
-
-# ---------------- AIRSPEED GAUGE ----------------
-
-GAUGE_SIZE = 500
+GAUGE_SIZE = 400
 CENTER = GAUGE_SIZE // 2
-RADIUS = 200
+RADIUS = 160
 TOTAL_SPEED = 180
 
-gauge_canvas = tk.Canvas(frame, width=GAUGE_SIZE, height=GAUGE_SIZE, bg="black")
-gauge_canvas.pack(pady=30)
+airspeed_canvas = tk.Canvas(top_frame, width=GAUGE_SIZE, height=GAUGE_SIZE, bg="black")
+airspeed_canvas.pack(side="left", padx=20)
 
 def speed_to_angle(speed):
     return -210 + (speed / TOTAL_SPEED) * 240
 
-def arc_coords():
-    return (CENTER-RADIUS, CENTER-RADIUS, CENTER+RADIUS, CENTER+RADIUS)
-
-def draw_gauge():
-
-    gauge_canvas.delete("all")
-
-    # Outer ring
-    gauge_canvas.create_oval(
-        CENTER-RADIUS-20,
-        CENTER-RADIUS-20,
-        CENTER+RADIUS+20,
-        CENTER+RADIUS+20,
-        outline="white",
-        width=4
+def draw_airspeed():
+    airspeed_canvas.delete("all")
+    airspeed_canvas.create_oval(
+        CENTER-RADIUS-20, CENTER-RADIUS-20,
+        CENTER+RADIUS+20, CENTER+RADIUS+20,
+        outline="white", width=4
     )
 
-    # -------- CORRECT COLOR ZONES --------
-
-    def draw_zone(start_speed, end_speed, color):
-
-        start_angle = speed_to_angle(start_speed)
-        end_angle = speed_to_angle(end_speed)
-
-        # shift 180 degrees so arc follows the same path as numbers
-        start_angle += 180
-        end_angle += 180
-
-        gauge_canvas.create_arc(
-            *arc_coords(),
+    def draw_zone(start, end, color):
+        start_angle = speed_to_angle(start) + 180
+        end_angle = speed_to_angle(end) + 180
+        airspeed_canvas.create_arc(
+            CENTER-RADIUS, CENTER-RADIUS,
+            CENTER+RADIUS, CENTER+RADIUS,
             start=start_angle,
             extent=end_angle - start_angle,
             style="arc",
             outline=color,
-            width=18
+            width=15
         )
 
     draw_zone(0, 120, "lime")
     draw_zone(120, 160, "yellow")
     draw_zone(160, 180, "red")
 
-    # -------- TICKS --------
-
     for speed in range(0, TOTAL_SPEED+1, 20):
-
         angle = math.radians(speed_to_angle(speed))
+        x1 = CENTER + (RADIUS-15) * math.cos(angle)
+        y1 = CENTER + (RADIUS-15) * math.sin(angle)
+        x2 = CENTER + RADIUS * math.cos(angle)
+        y2 = CENTER + RADIUS * math.sin(angle)
+        airspeed_canvas.create_line(x1, y1, x2, y2, fill="white", width=2)
+        tx = CENTER + (RADIUS-40) * math.cos(angle)
+        ty = CENTER + (RADIUS-40) * math.sin(angle)
+        airspeed_canvas.create_text(tx, ty, text=str(speed), fill="white")
 
-        outer = RADIUS
-        inner = RADIUS - 20
-
-        x1 = CENTER + inner * math.cos(angle)
-        y1 = CENTER + inner * math.sin(angle)
-
-        x2 = CENTER + outer * math.cos(angle)
-        y2 = CENTER + outer * math.sin(angle)
-
-        gauge_canvas.create_line(x1, y1, x2, y2, fill="white", width=2)
-
-        tx = CENTER + (RADIUS-50) * math.cos(angle)
-        ty = CENTER + (RADIUS-50) * math.sin(angle)
-
-        gauge_canvas.create_text(
-            tx,
-            ty,
-            text=str(speed),
-            fill="white",
-            font=("Arial", 14, "bold")
-        )
-
-def draw_needle(speed):
-
-    gauge_canvas.delete("needle")
-
-    speed = max(0, min(TOTAL_SPEED, speed))
-
+def draw_airspeed_needle(speed):
+    airspeed_canvas.delete("needle")
     angle = math.radians(speed_to_angle(speed))
-
     x = CENTER + (RADIUS-50) * math.cos(angle)
     y = CENTER + (RADIUS-50) * math.sin(angle)
+    airspeed_canvas.create_line(CENTER, CENTER, x, y, fill="red", width=3, tags="needle")
+    airspeed_canvas.create_oval(CENTER-5, CENTER-5, CENTER+5, CENTER+5, fill="white", tags="needle")
 
-    gauge_canvas.create_line(
-        CENTER,
-        CENTER,
-        x,
-        y,
-        fill="red",
-        width=4,
-        tags="needle"
+draw_airspeed()
+
+# ================= ATTITUDE =================
+
+att_canvas = tk.Canvas(top_frame, width=GAUGE_SIZE, height=GAUGE_SIZE, bg="black")
+att_canvas.pack(side="left", padx=20)
+
+def draw_attitude(pitch, roll):
+    att_canvas.delete("all")
+    for y in range(GAUGE_SIZE):
+        color = "#4da6ff" if y < CENTER + pitch*3 else "#8B4513"
+        att_canvas.create_line(0, y, GAUGE_SIZE, y, fill=color)
+    rad = math.radians(roll)
+    def rot(x, y):
+        dx = x - CENTER
+        dy = y - CENTER
+        rx = dx * math.cos(rad) - dy * math.sin(rad)
+        ry = dx * math.sin(rad) + dy * math.cos(rad)
+        return CENTER + rx, CENTER + ry
+    x1, y1 = rot(0, CENTER + pitch*3)
+    x2, y2 = rot(GAUGE_SIZE, CENTER + pitch*3)
+    att_canvas.create_line(x1, y1, x2, y2, fill="white", width=6)
+    att_canvas.create_line(CENTER-20, CENTER, CENTER+20, CENTER, fill="white", width=4)
+    att_canvas.create_line(CENTER, CENTER-10, CENTER, CENTER+10, fill="white", width=4)
+    att_canvas.create_oval(10,10,GAUGE_SIZE-10,GAUGE_SIZE-10,outline="white",width=3)
+
+# ================= COMPASS =================
+
+compass_canvas = tk.Canvas(top_frame, width=GAUGE_SIZE, height=GAUGE_SIZE, bg="black")
+compass_canvas.pack(side="left", padx=20)
+
+def draw_compass(heading):
+    compass_canvas.delete("all")
+    compass_canvas.create_oval(
+        CENTER-RADIUS, CENTER-RADIUS,
+        CENTER+RADIUS, CENTER+RADIUS,
+        outline="white", width=3
     )
+    for deg in range(0, 360, 5):
+        angle = math.radians(deg - heading - 90)
+        if deg % 30 == 0:
+            inner = RADIUS - 25; width = 3
+        elif deg % 10 == 0:
+            inner = RADIUS - 18; width = 2
+        else:
+            inner = RADIUS - 12; width = 1
+        x1 = CENTER + inner * math.cos(angle)
+        y1 = CENTER + inner * math.sin(angle)
+        x2 = CENTER + RADIUS * math.cos(angle)
+        y2 = CENTER + RADIUS * math.sin(angle)
+        compass_canvas.create_line(x1, y1, x2, y2, fill="white", width=width)
+        if deg % 30 == 0:
+            tx = CENTER + (RADIUS-45) * math.cos(angle)
+            ty = CENTER + (RADIUS-45) * math.sin(angle)
+            text = {0:"N",90:"O",180:"Z",270:"W"}.get(deg,str(deg))
+            color = "yellow" if deg in [0,90,180,270] else "white"
+            compass_canvas.create_text(tx, ty, text=text, fill=color, font=("Arial",14,"bold"))
+    compass_canvas.create_polygon(CENTER, CENTER - 90, CENTER-10, CENTER-60, CENTER+10, CENTER-60, fill="red")
+    compass_canvas.create_line(CENTER, CENTER-60, CENTER, CENTER+60, fill="red", width=3)
 
-    gauge_canvas.create_oval(
-        CENTER-8,
-        CENTER-8,
-        CENTER+8,
-        CENTER+8,
-        fill="white",
-        tags="needle"
-    )
+# ================= CONTROLS =================
 
-draw_gauge()
+title = tk.Label(bottom_frame, text="COCKPIT CONTROL", font=("Arial", 30))
+title.pack(pady=10)
 
-# ---------------- UPDATE LOOP ----------------
+def toggle_battery():
+    global battery_state
+    battery_state = 1 - battery_state
+    client.publish(TOPIC_BATTERY, str(battery_state))
 
-def update_gauge():
-    draw_needle(airspeed_value)
-    root.after(50, update_gauge)
+battery_btn = tk.Button(bottom_frame, text="BATTERY: OFF", command=toggle_battery, font=("Arial", 20))
+battery_btn.pack(pady=10)
 
-update_gauge()
+def send_throttle(value):
+    val = round(float(value), 2)
+    client.publish(TOPIC_THROTTLE, str(val))
 
-# ---------------- LOG WINDOW ----------------
+tk.Scale(bottom_frame, from_=0, to=1, resolution=0.01,
+         orient=tk.HORIZONTAL, length=400,
+         command=send_throttle).pack(pady=10)
 
-log = tk.Text(frame, height=10, width=80, font=("Arial", 12))
-log.pack(pady=20)
+log = tk.Text(bottom_frame, height=8, width=80)
+log.pack()
 
-# ---------------- MQTT ----------------
+# ================= UPDATE =================
+
+def update_ui():
+    global display_heading
+    diff = (heading_value - display_heading)
+    if diff > 180: diff -= 360
+    elif diff < -180: diff += 360
+    display_heading += diff * 0.15
+    draw_airspeed_needle(airspeed_value)
+    draw_compass(display_heading)
+    draw_attitude(pitch, roll)
+    root.after(50, update_ui)
+
+update_ui()
+
+# ================= MQTT =================
 
 client = mqtt.Client()
 
 def on_message(client, userdata, msg):
-
-    global airspeed_value
-
+    global airspeed_value, heading_value, pitch, roll
     message = msg.payload.decode()
-
     if msg.topic == TOPIC_AIRSPEED:
+        airspeed_value = float(message)
+    elif msg.topic == TOPIC_HEADING:
+        heading_value = float(message)
+    elif msg.topic == TOPIC_ATTITUDE:
         try:
-            airspeed_value = min(max(float(message), 0), 180)
+            p, r = message.split(",")
+            pitch = float(p)
+            roll = float(r)
         except:
             pass
-
-    pending_logs = []
-
-    def on_message(client, userdata, msg):
-        global airspeed_value
-        message = msg.payload.decode()
-
-        if msg.topic == TOPIC_AIRSPEED:
-            try:
-                airspeed_value = min(max(float(message), 0), 180)
-            except:
-                pass
-
-        pending_logs.append(f"{msg.topic}: {message}")
-
-    def flush_logs():
-        while pending_logs:
-            line = pending_logs.pop(0)
-            log.insert(tk.END, line + "\n")
-            log.see(tk.END)
-        root.after(100, flush_logs)
-
-    flush_logs()
+    log.insert(tk.END, f"{msg.topic}: {message}\n")
+    log.see(tk.END)
 
 client.on_message = on_message
-
 client.connect(BROKER, 1883, 60)
 client.subscribe(TOPIC_MONITOR)
-
 client.loop_start()
 
 root.mainloop()
