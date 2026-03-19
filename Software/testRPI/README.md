@@ -1,8 +1,8 @@
 ## Stap 1
-maak een virtual environment aan.
+maak een virtual environment aan. Heeft toegang toe system packages voor GPIO's nodig
 
 ```bash
-python3 -m venv venv
+python3 -m venv --system-site-packages venv
 ```
 
 Dat maakt een virtual environment aan in een map `venv`.
@@ -121,3 +121,4 @@ sudo systemctl restart mosquitto
 
 ---
 
+### LGPIO NOG DOEN NIET VERGETE?!!!!
