@@ -16,8 +16,7 @@ BUTTON_PIN = 17
 chip = lgpio.gpiochip_open(0)  # open gpiochip0
 
 # Zet pin als input met pull-up
-lgpio.gpio_claim_input(chip, BUTTON_PIN)
-lgpio.gpio_set_pull(chip, BUTTON_PIN, lgpio.SET_PULL_UP)
+lgpio.gpio_claim_input(chip, BUTTON_PIN, lgpio.SET_PULL_UP)
 
 # ========================
 # MQTT SETUP
