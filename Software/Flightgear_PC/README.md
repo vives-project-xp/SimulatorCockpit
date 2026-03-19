@@ -1,51 +1,37 @@
+### Stap 1 — Verplaats XML-bestand
+
+Neem deze bestanden:
 
 
+ **[input_protocol.xml](xml/input_protocol.xml)**
 
-### 🧱 Stap 1 — Verplaats je XML-bestand
+ **[udp_out.xml](xml/udp_out.xml)**
 
-Neem dit bestand:
+
+en zet ze **hier**:
 
 ```
-udp_out.xml
+C:/Users/user/FlightGear/Downloads/fgdata_2024_1/Protocol
 ```
-
-en zet het **hier**:
-
-```
-C:/Users/user/FlightGear/Downloads/fgdata_2024_1/Protocol/udp_out.xml
-```
-
-⚠️ De naam **udp_out.xml** onthouden.
 
 ---
 
-### 🧱 Stap 2 — Start FlightGear ZONDER pad en ZONDER .xml
+### Stap 2 — Start FlightGear 
 
-Gebruik nu **exact dit**:
 
+Ga naar deze plek in je terminal:
+```powershell
+C:\Program Files\FlightGear 2024.1\bin
+```
+en voer daar dit commando uit:
 ```powershell
 .\fgfs.exe --generic=socket,out,2,127.0.0.1,5500,udp,udp_out ^ --generic=socket,in,2,127.0.0.1,5600,tcp,input_protocol
 ```
 
-🔑 Let op:
-✅ Waar moet je staan in de terminal?
-
-Op jouw pc (zie eerdere output) staat FlightGear hier:
-
-```powershell
-C:\Program Files\FlightGear 2024.1\bin
-```
-
-* laatste argument = `udp_out`
-* **geen** `.xml`
-* **geen** pad
-
 ---
+### Stap 3 — run Python-script 
 
-## 🧱 Stap 3 — run Python-script 
-
-udp_in_mqqt_tcp_out_mqtt.py
-
+run **[udp_in_mqqt_tcp_out_mqtt.py](udp_in_mqqt_tcp_out_mqtt.py)**
 
 
 
