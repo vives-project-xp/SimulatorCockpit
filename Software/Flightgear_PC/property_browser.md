@@ -1,6 +1,11 @@
 ## FlightGear – Real-time values bekijken via de Property Browser
 
 ### Property Browser openen (tijdens simulatie)
+
+# Eerst manier
+1. doe ctrl+/ in simulatie
+
+# Tweede manier
 1. Beweeg de muis naar de bovenkant van het scherm
 2. Open **ontwikkeling**
 3. Klik op **blader door interne eigenschappen**
