@@ -1,25 +1,49 @@
-from gpiozero import Button
-from signal import pause
+import lgpio
 import paho.mqtt.client as mqtt
+import time
 
+# ========================
+# CONFIG
+# ========================
 BROKER = "localhost"
 TOPIC_BATTERY = "cockpit/input/battery"
 
-button = Button(17, pull_up=True)
+BUTTON_PIN = 17
 
+# ========================
+# GPIO SETUP (lgpio)
+# ========================
+chip = lgpio.gpiochip_open(0)  # open gpiochip0
+
+# Zet pin als input met pull-up
+lgpio.gpio_claim_input(chip, BUTTON_PIN)
+lgpio.gpio_set_pull(chip, BUTTON_PIN, lgpio.SET_PULL_UP)
+
+# ========================
+# MQTT SETUP
+# ========================
 client = mqtt.Client()
 client.connect(BROKER, 1883, 60)
 client.loop_start()
 
-def pressed():
-    client.publish(TOPIC_BATTERY, "1")
-    print("Battery: 1")
+print("Battery hardware control started (lgpio)...")
 
-def released():
-    client.publish(TOPIC_BATTERY, "0")
-    print("Battery: 0")
+last_state = None
 
-button.when_pressed = pressed
-button.when_released = released
+try:
+    while True:
+        current_gpio = lgpio.gpio_read(chip, BUTTON_PIN)
 
-pause()
+        # zelfde logica als je vorige code
+        battery_state = 1 if current_gpio == 1 else 0
+
+        if battery_state != last_state:
+            client.publish(TOPIC_BATTERY, str(battery_state))
+            print("Battery:", battery_state)
+            last_state = battery_state
+
+        time.sleep(0.05)
+
+except KeyboardInterrupt:
+    print("Stopping...")
+    lgpio.gpiochip_close(chip)
