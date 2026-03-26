@@ -8,8 +8,8 @@ import time
 BROKER = "localhost"
 
 TOPIC_BATTERY = "cockpit/input/battery"
-TOPIC_TOGGLE = "cockpit/input/jouw_toggle_knop"      # <-- aanpassen
-TOPIC_EXTRA = "cockpit/input/alt"       # <-- aanpassen
+TOPIC_TOGGLE = "cockpit/input/jouw_toggle_knop"   # <-- aanpassen
+TOPIC_EXTRA = "cockpit/input/alt"                 # <-- aanpassen
 
 BUTTON_PIN = 17
 TOGGLE_BUTTON_PIN = 27
@@ -23,7 +23,7 @@ chip = lgpio.gpiochip_open(0)  # open gpiochip0
 # Batterij knop
 lgpio.gpio_claim_input(chip, BUTTON_PIN, lgpio.SET_PULL_UP)
 
-# Toggle knop
+# Toggle knop (nu gewoon zelfde als andere knoppen)
 lgpio.gpio_claim_input(chip, TOGGLE_BUTTON_PIN, lgpio.SET_PULL_UP)
 
 # Extra gewone knop
@@ -42,10 +42,8 @@ print("Battery + toggle + extra input started (lgpio)...")
 # STATES
 # ========================
 last_battery_state = None
+last_toggle_state = None
 last_extra_state = None
-
-toggle_state = 0
-last_toggle_gpio = 1
 
 try:
     while True:
@@ -61,18 +59,15 @@ try:
             last_battery_state = battery_state
 
         # ========================
-        # 2) TOGGLE BUTTON
+        # 2) TOGGLE BUTTON (nu gewone knop)
         # ========================
         current_toggle_gpio = lgpio.gpio_read(chip, TOGGLE_BUTTON_PIN)
+        toggle_state = 1 if current_toggle_gpio == 1 else 0
 
-        if current_toggle_gpio == 0 and last_toggle_gpio == 1:
-            toggle_state = 0 if toggle_state == 1 else 1
+        if toggle_state != last_toggle_state:
             client.publish(TOPIC_TOGGLE, str(toggle_state))
             print("Toggle knop:", toggle_state)
-
-            time.sleep(0.2)  # debounce
-
-        last_toggle_gpio = current_toggle_gpio
+            last_toggle_state = toggle_state
 
         # ========================
         # 3) EXTRA BUTTON (zoals batterij)
