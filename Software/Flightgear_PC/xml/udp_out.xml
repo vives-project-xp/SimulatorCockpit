@@ -19,6 +19,27 @@
         <format>HEADING=%f</format>
       </chunk>
 
+      <chunk>
+        <name>AltimeterAltitude</name>
+        <node>/instrumentation/altimeter/indicated-altitude-ft</node>
+        <type>float</type>
+        <format>ALTITUDE=%f</format>
+      </chunk>
+
+      <chunk>
+        <name>AltimeterSetting</name>
+        <node>/instrumentation/altimeter/setting-inhg</node>
+        <type>float</type>
+        <format>ALT_SETTING=%f</format>
+      </chunk>
+
+      <chunk>
+        <name>VerticalSpeed</name>
+        <node>/instrumentation/vertical-speed-indicator/indicated-speed-fpm</node>
+        <type>float</type>
+        <format>VSI=%f</format>
+      </chunk>
+
     </output>
   </generic>
 </PropertyList>

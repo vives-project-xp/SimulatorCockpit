@@ -21,6 +21,13 @@
         <type>float</type>
       </chunk>
 
+      <!-- 3de waarde -->
+      <chunk>
+        <name>AltimeterSetting</name>
+        <node>/instrumentation/altimeter/setting-inhg</node>
+        <type>float</type>
+      </chunk>
+
     </input>
   </generic>
 

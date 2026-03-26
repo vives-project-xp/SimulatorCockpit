@@ -15,7 +15,9 @@
 ## belangerijkste values route in property browser
 - speed = /instrumentation/airspeed-indicator
 - fuel level = /consumables/fuel/total-fuel-lbs£
-- altitude = /instrumentation/altimeter/indicated-altitude-f
+- altitude = /instrumentation/altimeter/indicated-altitude-ft
 - direction = /instrumentation/heading-indicator/
 - heading = /orientation/heading-deg/         
+- altimeter setting (inHg) = /instrumentation/altimeter/setting-inhg
+- altimeter setting (hPa) = /instrumentation/altimeter/setting-hpa
 - Vertical Speed Indicator /instrumentation/vertical-speed-indicator/indicated-speed-fpm

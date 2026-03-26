@@ -29,13 +29,14 @@ print("[TCP] Verbonden met FlightGear")
 # =========================
 current_battery = 0
 current_throttle = 0.0
+current_altimeter_setting_inhg = 29.92
 old_hash = b""
 
 # =========================
 # MQTT CALLBACK
 # =========================
 def on_message(client, userdata, msg):
-    global current_battery, current_throttle, old_hash
+    global current_battery, current_throttle, current_altimeter_setting_inhg, old_hash
 
     topic = msg.topic
     payload = msg.payload.decode().strip()
@@ -47,11 +48,14 @@ def on_message(client, userdata, msg):
         elif topic == "cockpit/input/throttle":
             current_throttle = float(payload)
 
+        elif topic == "cockpit/input/altimeter_setting_inhg":
+            current_altimeter_setting_inhg = float(payload)
+
     except ValueError:
         return
 
     # BELANGRIJK: volgorde moet exact overeenkomen met XML chunks
-    datastr = f"{current_battery}:{current_throttle}\n"
+    datastr = f"{current_battery}:{current_throttle}:{current_altimeter_setting_inhg:.2f}\n"
 
     new_hash = hashlib.md5(datastr.encode()).digest()
 
@@ -68,6 +72,7 @@ mqtt_client.on_message = on_message
 mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
 mqtt_client.subscribe("cockpit/input/battery")
 mqtt_client.subscribe("cockpit/input/throttle")
+mqtt_client.subscribe("cockpit/input/altimeter_setting_inhg")
 mqtt_client.loop_start()
 print("[MQTT] Verbonden met broker")
 
@@ -101,8 +106,14 @@ def udp_listener():
                 mqtt_client.publish("cockpit/airspeed", value, qos=0)
                 # print(f"[MQTT] AIRSPEED = {value}")
             elif key == "HEADING":
-                mqtt_client.publish("cockpit/heading", value,qos=0)
+                mqtt_client.publish("cockpit/heading", value, qos=0)
                 # print(f"[MQTT] HEADING = {value0.8}")
+            elif key == "ALTITUDE":
+                mqtt_client.publish("cockpit/altimeter/indicated_altitude_ft", value, qos=0)
+            elif key == "ALT_SETTING":
+                mqtt_client.publish("cockpit/altimeter/setting_inhg", value, qos=0)
+            elif key == "VSI":
+                mqtt_client.publish("cockpit/altimeter/vsi_fpm", value, qos=0)
 
 # Start UDP listener in aparte thread
 udp_thread = threading.Thread(target=udp_listener, daemon=True)
