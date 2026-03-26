@@ -14,7 +14,7 @@ FG_TCP_PORT = 5600
 UDP_IP = "127.0.0.1"
 UDP_PORT = 5500
 
-MQTT_BROKER = "10.10.232.162"
+MQTT_BROKER = "10.10.229.190"
 MQTT_PORT = 1883
 
 # =========================
@@ -29,6 +29,8 @@ print("[TCP] Verbonden met FlightGear")
 # =========================
 current_battery = 0
 current_throttle = 0.0
+current_attitude_pitch = 0.0
+current_attitude_roll = 0.0
 old_hash = b""
 
 # =========================
@@ -75,6 +77,7 @@ print("[MQTT] Verbonden met broker")
 # UDP LISTENER (OUTPUT)
 # =========================
 def udp_listener():
+    global current_attitude_pitch, current_attitude_roll
     udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_sock.bind((UDP_IP, UDP_PORT))
     print(f"[UDP] Luisteren op {UDP_IP}:{UDP_PORT}")
@@ -87,6 +90,7 @@ def udp_listener():
             continue
 
         lines = text.splitlines()
+        attitude_changed = False
         for line in lines:
             line = line.strip()
             if "=" not in line:
@@ -101,8 +105,18 @@ def udp_listener():
                 mqtt_client.publish("cockpit/airspeed", value, qos=0)
                 # print(f"[MQTT] AIRSPEED = {value}")
             elif key == "HEADING":
-                mqtt_client.publish("cockpit/heading", value,qos=0)
+                mqtt_client.publish("cockpit/heading", value, qos=0)
                 # print(f"[MQTT] HEADING = {value0.8}")
+            elif key == "ATTITUDE_PITCH":
+                current_attitude_pitch = value
+                attitude_changed = True
+            elif key == "ATTITUDE_ROLL":
+                current_attitude_roll = value
+                attitude_changed = True
+
+        if attitude_changed:
+            payload = f"{current_attitude_pitch:.3f},{current_attitude_roll:.3f}"
+            mqtt_client.publish("cockpit/attitude", payload, qos=0)
 
 # Start UDP listener in aparte thread
 udp_thread = threading.Thread(target=udp_listener, daemon=True)

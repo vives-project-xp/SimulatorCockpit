@@ -19,6 +19,20 @@
         <format>HEADING=%f</format>
       </chunk>
 
+      <chunk>
+        <name>AttitudePitch</name>
+        <node>/instrumentation/attitude-indicator/indicated-pitch-deg</node>
+        <type>float</type>
+        <format>ATTITUDE_PITCH=%f</format>
+      </chunk>
+
+      <chunk>
+        <name>AttitudeRoll</name>
+        <node>/instrumentation/attitude-indicator/indicated-roll-deg</node>
+        <type>float</type>
+        <format>ATTITUDE_ROLL=%f</format>
+      </chunk>
+
     </output>
   </generic>
 </PropertyList>
