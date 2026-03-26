@@ -8,10 +8,6 @@ TOPIC_THROTTLE = "cockpit/input/throttle"
 TOPIC_BATTERY = "cockpit/input/battery"
 TOPIC_AIRSPEED = "cockpit/airspeed"
 TOPIC_HEADING = "cockpit/heading"
-TOPIC_ALTITUDE = "cockpit/altimeter/indicated_altitude_ft"
-TOPIC_ALT_SETTING = "cockpit/altimeter/setting_inhg"
-TOPIC_VSI = "cockpit/altimeter/vsi_fpm"
-TOPIC_ALT_SETTING_INPUT = "cockpit/input/altimeter_setting_inhg"
 TOPIC_ATTITUDE = "cockpit/attitude"
 TOPIC_MONITOR = "#"
 
@@ -19,11 +15,6 @@ battery_state = 0
 airspeed_value = 0.0
 heading_value = 0.0
 display_heading = 0.0
-altitude_value = 0.0
-display_altitude = 0.0
-altimeter_initialized = False
-altimeter_setting_inhg = 29.92
-vertical_speed_fpm = 0.0
 pitch = 0.0
 roll = 0.0
 
@@ -100,65 +91,6 @@ def draw_airspeed_needle(speed):
     airspeed_canvas.create_oval(CENTER-5, CENTER-5, CENTER+5, CENTER+5, fill="white", tags="needle")
 
 draw_airspeed()
-
-# ================= ALTIMETER =================
-
-altimeter_canvas = tk.Canvas(top_frame, width=GAUGE_SIZE, height=GAUGE_SIZE, bg="black")
-altimeter_canvas.pack(side="left", padx=20)
-
-def altimeter_angle(value, full_turn):
-    return math.radians((value / full_turn) * 360 - 90)
-
-def draw_altimeter(altitude_ft, setting_inhg, vsi_fpm):
-    altimeter_canvas.delete("all")
-    altimeter_canvas.create_oval(
-        CENTER-RADIUS-20, CENTER-RADIUS-20,
-        CENTER+RADIUS+20, CENTER+RADIUS+20,
-        outline="white", width=4
-    )
-
-    for tick in range(50):
-        angle = math.radians((tick / 50) * 360 - 90)
-        inner = RADIUS - (28 if tick % 5 == 0 else 16)
-        width = 3 if tick % 5 == 0 else 1
-        x1 = CENTER + inner * math.cos(angle)
-        y1 = CENTER + inner * math.sin(angle)
-        x2 = CENTER + RADIUS * math.cos(angle)
-        y2 = CENTER + RADIUS * math.sin(angle)
-        altimeter_canvas.create_line(x1, y1, x2, y2, fill="white", width=width)
-
-    for digit in range(10):
-        angle = math.radians((digit / 10) * 360 - 90)
-        tx = CENTER + (RADIUS - 48) * math.cos(angle)
-        ty = CENTER + (RADIUS - 48) * math.sin(angle)
-        altimeter_canvas.create_text(tx, ty, text=str(digit), fill="white", font=("Arial", 14, "bold"))
-
-    hundreds_angle = altimeter_angle(altitude_ft % 1000, 1000)
-    thousands_angle = altimeter_angle(altitude_ft % 10000, 10000)
-    ten_thousands_angle = altimeter_angle(altitude_ft % 100000, 100000)
-
-    hx = CENTER + (RADIUS - 34) * math.cos(hundreds_angle)
-    hy = CENTER + (RADIUS - 34) * math.sin(hundreds_angle)
-    altimeter_canvas.create_line(CENTER, CENTER, hx, hy, fill="white", width=4)
-
-    tx = CENTER + (RADIUS - 78) * math.cos(thousands_angle)
-    ty = CENTER + (RADIUS - 78) * math.sin(thousands_angle)
-    altimeter_canvas.create_line(CENTER, CENTER, tx, ty, fill="white", width=6)
-
-    mx = CENTER + (RADIUS - 112) * math.cos(ten_thousands_angle)
-    my = CENTER + (RADIUS - 112) * math.sin(ten_thousands_angle)
-    altimeter_canvas.create_polygon(
-        mx, my,
-        CENTER + 12 * math.cos(ten_thousands_angle + math.pi / 2), CENTER + 12 * math.sin(ten_thousands_angle + math.pi / 2),
-        CENTER + 12 * math.cos(ten_thousands_angle - math.pi / 2), CENTER + 12 * math.sin(ten_thousands_angle - math.pi / 2),
-        fill="white"
-    )
-
-    altimeter_canvas.create_oval(CENTER-8, CENTER-8, CENTER+8, CENTER+8, fill="white")
-    altimeter_canvas.create_rectangle(CENTER-70, CENTER+58, CENTER+70, CENTER+102, outline="white", width=2)
-    altimeter_canvas.create_text(CENTER, CENTER+72, text=f"{altitude_ft:,.0f} FT", fill="white", font=("Arial", 14, "bold"))
-    altimeter_canvas.create_text(CENTER, CENTER+92, text=f"{setting_inhg:.2f} IN  {vsi_fpm:+.0f} FPM", fill="white", font=("Arial", 11))
-    altimeter_canvas.create_text(CENTER, CENTER-120, text="ALT", fill="white", font=("Arial", 16, "bold"))
 
 # ================= ATTITUDE =================
 
@@ -239,35 +171,18 @@ tk.Scale(bottom_frame, from_=0, to=1, resolution=0.01,
          orient=tk.HORIZONTAL, length=400,
          command=send_throttle).pack(pady=10)
 
-baro_frame = tk.Frame(bottom_frame)
-baro_frame.pack(pady=10)
-
-def send_altimeter_setting(delta):
-    global altimeter_setting_inhg
-    altimeter_setting_inhg = max(28.00, min(31.50, round(altimeter_setting_inhg + delta, 2)))
-    client.publish(TOPIC_ALT_SETTING_INPUT, f"{altimeter_setting_inhg:.2f}")
-
-tk.Label(baro_frame, text="ALT BARO", font=("Arial", 18)).pack(side="left", padx=10)
-tk.Button(baro_frame, text="-", width=4, font=("Arial", 18), command=lambda: send_altimeter_setting(-0.01)).pack(side="left", padx=5)
-tk.Button(baro_frame, text="+", width=4, font=("Arial", 18), command=lambda: send_altimeter_setting(0.01)).pack(side="left", padx=5)
-
 log = tk.Text(bottom_frame, height=8, width=80)
 log.pack()
 
 # ================= UPDATE =================
 
 def update_ui():
-    global display_heading, display_altitude
+    global display_heading
     diff = (heading_value - display_heading)
     if diff > 180: diff -= 360
     elif diff < -180: diff += 360
     display_heading += diff * 0.15
-
-    altitude_diff = altitude_value - display_altitude
-    display_altitude += altitude_diff * 0.12
-
     draw_airspeed_needle(airspeed_value)
-    draw_altimeter(display_altitude, altimeter_setting_inhg, vertical_speed_fpm)
     draw_compass(display_heading)
     draw_attitude(pitch, roll)
     root.after(50, update_ui)
@@ -279,33 +194,19 @@ update_ui()
 client = mqtt.Client()
 
 def on_message(client, userdata, msg):
-    global airspeed_value, heading_value, altitude_value, display_altitude, altimeter_initialized
-    global altimeter_setting_inhg, vertical_speed_fpm, pitch, roll
+    global airspeed_value, heading_value, pitch, roll
     message = msg.payload.decode()
-    if msg.topic == TOPIC_ATTITUDE:
+    if msg.topic == TOPIC_AIRSPEED:
+        airspeed_value = float(message)
+    elif msg.topic == TOPIC_HEADING:
+        heading_value = float(message)
+    elif msg.topic == TOPIC_ATTITUDE:
         try:
             p, r = message.split(",")
             pitch = float(p)
             roll = float(r)
         except:
             pass
-    else:
-        try:
-            if msg.topic == TOPIC_AIRSPEED:
-                airspeed_value = float(message)
-            elif msg.topic == TOPIC_HEADING:
-                heading_value = float(message)
-            elif msg.topic == TOPIC_ALTITUDE:
-                altitude_value = float(message)
-                if not altimeter_initialized:
-                    display_altitude = altitude_value
-                    altimeter_initialized = True
-            elif msg.topic == TOPIC_ALT_SETTING:
-                altimeter_setting_inhg = float(message)
-            elif msg.topic == TOPIC_VSI:
-                vertical_speed_fpm = float(message)
-        except ValueError:
-            return
     log.insert(tk.END, f"{msg.topic}: {message}\n")
     log.see(tk.END)
 

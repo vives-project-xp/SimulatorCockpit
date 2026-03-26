@@ -25,7 +25,7 @@ C:\Program Files\FlightGear 2024.1\bin
 ```
 en voer daar dit commando uit:
 ```powershell
-.\fgfs.exe --generic=socket,out,10,127.0.0.1,5500,udp,udp_out ^ --generic=socket,in,10,127.0.0.1,5600,tcp,input_protocol
+.\fgfs.exe --generic=socket,out,2,127.0.0.1,5500,udp,udp_out ^ --generic=socket,in,2,127.0.0.1,5600,tcp,input_protocol
 ```
 
 ---
