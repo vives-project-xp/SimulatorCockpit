@@ -8,12 +8,12 @@ import time
 BROKER = "localhost"
 
 TOPIC_BATTERY = "cockpit/input/battery"
-TOPIC_TOGGLE = "cockpit/input/jouw_toggle_knop"      # <-- verander dit
-TOPIC_EXTRA = "cockpit/input/jouw_extra_input"       # <-- verander dit
+TOPIC_TOGGLE = "cockpit/input/jouw_toggle_knop"      # <-- aanpassen
+TOPIC_EXTRA = "cockpit/input/jouw_extra_input"       # <-- aanpassen
 
 BUTTON_PIN = 17
-TOGGLE_BUTTON_PIN = 27     # <-- verander dit indien nodig
-EXTRA_BUTTON_PIN = 22      # <-- verander dit indien nodig
+TOGGLE_BUTTON_PIN = 27
+EXTRA_BUTTON_PIN = 22
 
 # ========================
 # GPIO SETUP (lgpio)
@@ -21,16 +21,13 @@ EXTRA_BUTTON_PIN = 22      # <-- verander dit indien nodig
 chip = lgpio.gpiochip_open(0)  # open gpiochip0
 
 # Batterij knop
-lgpio.gpio_claim_input(chip, BUTTON_PIN)
-lgpio.gpio_set_pull(chip, BUTTON_PIN, lgpio.SET_PULL_UP)
+lgpio.gpio_claim_input(chip, BUTTON_PIN, lgpio.SET_PULL_UP)
 
 # Toggle knop
-lgpio.gpio_claim_input(chip, TOGGLE_BUTTON_PIN)
-lgpio.gpio_set_pull(chip, TOGGLE_BUTTON_PIN, lgpio.SET_PULL_UP)
+lgpio.gpio_claim_input(chip, TOGGLE_BUTTON_PIN, lgpio.SET_PULL_UP)
 
-# Extra gewone knop (zoals batterij)
-lgpio.gpio_claim_input(chip, EXTRA_BUTTON_PIN)
-lgpio.gpio_set_pull(chip, EXTRA_BUTTON_PIN, lgpio.SET_PULL_UP)
+# Extra gewone knop
+lgpio.gpio_claim_input(chip, EXTRA_BUTTON_PIN, lgpio.SET_PULL_UP)
 
 # ========================
 # MQTT SETUP
