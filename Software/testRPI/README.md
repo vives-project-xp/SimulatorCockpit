@@ -122,3 +122,29 @@ sudo systemctl restart mosquitto
 ---
 
 ### LGPIO NOG DOEN NIET VERGETE?!!!!
+---
+# ADC
+https://38-3d.co.uk/blogs/blog/using-the-ads1115-with-the-raspberry-pi
+
+```python
+import time
+import board
+import busio
+import adafruit_ads1x15.ads1115 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
+from adafruit_ads1x15.ads1x15 import Pin
+
+# Initialize I2C and ADS1115 ADC
+i2c = busio.I2C(board.SCL, board.SDA)
+ads = ADS.ADS1115(i2c)
+
+# Select Analog Input Channel (A0)
+channel = AnalogIn(ads, Pin.A0)
+
+try:
+    while True:
+        print(f"Raw Value: {channel.value}, Voltage: {channel.voltage:.2f}V")
+        time.sleep(1)
+except KeyboardInterrupt:
+    print("Exiting...")
+```
