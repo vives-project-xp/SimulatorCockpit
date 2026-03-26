@@ -9,7 +9,7 @@ BROKER = "localhost"
 
 TOPIC_BATTERY = "cockpit/input/battery"
 TOPIC_TOGGLE = "cockpit/input/jouw_toggle_knop"      # <-- aanpassen
-TOPIC_EXTRA = "cockpit/input/jouw_extra_input"       # <-- aanpassen
+TOPIC_EXTRA = "cockpit/input/alt"       # <-- aanpassen
 
 BUTTON_PIN = 17
 TOGGLE_BUTTON_PIN = 27
@@ -82,7 +82,7 @@ try:
 
         if extra_state != last_extra_state:
             client.publish(TOPIC_EXTRA, str(extra_state))
-            print("Extra knop:", extra_state)
+            print("Alt:", extra_state)
             last_extra_state = extra_state
 
         time.sleep(0.05)
