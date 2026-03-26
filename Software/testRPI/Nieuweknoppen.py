@@ -15,7 +15,7 @@ TOPIC_SLEUTEL = "cockpit/input/sleutel"           # <-- nieuw
 BUTTON_PIN = 17
 TOGGLE_BUTTON_PIN = 27
 EXTRA_BUTTON_PIN = 22
-SLEUTEL_PIN = 23                                  # <-- nieuw, aanpassen indien nodig
+SLEUTEL_PIN = 23                                  # <-- aanpassen indien nodig
 
 # ========================
 # GPIO SETUP (lgpio)
@@ -31,7 +31,7 @@ lgpio.gpio_claim_input(chip, TOGGLE_BUTTON_PIN, lgpio.SET_PULL_UP)
 # Extra gewone knop
 lgpio.gpio_claim_input(chip, EXTRA_BUTTON_PIN, lgpio.SET_PULL_UP)
 
-# Sleutel knop
+# Sleutel knop (momentary)
 lgpio.gpio_claim_input(chip, SLEUTEL_PIN, lgpio.SET_PULL_UP)
 
 # ========================
@@ -49,13 +49,7 @@ print("Battery + toggle + extra + sleutel input started (lgpio)...")
 last_battery_state = None
 last_toggle_state = None
 last_extra_state = None
-
-sleutel_state = 0
-last_sleutel_gpio = 1
-
-# stuur beginwaarde van sleutel direct door
-client.publish(TOPIC_SLEUTEL, str(sleutel_state))
-print("Sleutel:", sleutel_state)
+last_sleutel_state = None
 
 try:
     while True:
@@ -93,18 +87,15 @@ try:
             last_extra_state = extra_state
 
         # ========================
-        # 4) SLEUTEL (behoudt zijn waarde)
+        # 4) SLEUTEL (momentary start key)
         # ========================
         current_sleutel_gpio = lgpio.gpio_read(chip, SLEUTEL_PIN)
+        sleutel_state = 1 if current_sleutel_gpio == 1 else 0
 
-        # alleen reageren op indrukken (1 -> 0)
-        if current_sleutel_gpio == 0 and last_sleutel_gpio == 1:
-            sleutel_state = 0 if sleutel_state == 1 else 1
+        if sleutel_state != last_sleutel_state:
             client.publish(TOPIC_SLEUTEL, str(sleutel_state))
             print("Sleutel:", sleutel_state)
-            time.sleep(0.2)  # debounce
-
-        last_sleutel_gpio = current_sleutel_gpio
+            last_sleutel_state = sleutel_state
 
         time.sleep(0.05)
 
