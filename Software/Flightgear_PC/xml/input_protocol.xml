@@ -21,7 +21,13 @@
 
       <chunk>
         <name>CarbHeat</name>
-        <node>/controls/anti-ice/engine/carb-heat</node>
+        <node>/controls/engines/current-engine/carb-heat</node>
+        <type>integer</type>
+      </chunk>
+
+      <chunk>
+        <name>Magnetos</name>
+        <node>/controls/switches/magnetos</node>
         <type>integer</type>
       </chunk>
 
