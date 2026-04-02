@@ -8,8 +8,8 @@ import time
 BROKER = "localhost"
 
 TOPIC_BATTERY = "cockpit/input/battery"
-TOPIC_TOGGLE = "cockpit/input/jouw_toggle_knop"   # <-- aanpassen
-TOPIC_EXTRA = "cockpit/input/alt"                 # <-- aanpassen
+TOPIC_TOGGLE = "cockpit/input/carb-heat"   # <-- aanpassen
+TOPIC_EXTRA = "cockpit/input/alt"                 # <-- alt
 TOPIC_SLEUTEL = "cockpit/input/sleutel"           # <-- nieuw
 
 BUTTON_PIN = 17
@@ -72,7 +72,7 @@ try:
 
         if toggle_state != last_toggle_state:
             client.publish(TOPIC_TOGGLE, str(toggle_state))
-            print("Toggle knop:", toggle_state)
+            print("Carb-heat:", toggle_state)
             last_toggle_state = toggle_state
 
         # ========================
