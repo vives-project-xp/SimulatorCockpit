@@ -29,6 +29,7 @@ print("[TCP] Verbonden met FlightGear")
 # =========================
 current_battery = 0
 current_master_alt = 0
+current_carb_heat = 0
 current_throttle = 0.0
 current_attitude_pitch = 0.0
 current_attitude_roll = 0.0
@@ -38,7 +39,7 @@ old_hash = b""
 # MQTT CALLBACK
 # =========================
 def on_message(client, userdata, msg):
-    global current_battery, current_master_alt, current_throttle, old_hash
+    global current_battery, current_master_alt, current_carb_heat, current_throttle, old_hash
 
     topic = msg.topic
     payload = msg.payload.decode().strip()
@@ -50,6 +51,9 @@ def on_message(client, userdata, msg):
         elif topic in ("cockpit/input/master-alt", "cockpit/input/alt"):
             current_master_alt = int(payload)
 
+        elif topic == "cockpit/input/carb-heat":
+            current_carb_heat = int(payload)
+
         elif topic == "cockpit/input/throttle":
             current_throttle = float(payload)
 
@@ -57,7 +61,7 @@ def on_message(client, userdata, msg):
         return
 
     # BELANGRIJK: volgorde moet exact overeenkomen met XML chunks
-    datastr = f"{current_battery}:{current_master_alt}:{current_throttle}\n"
+    datastr = f"{current_battery}:{current_master_alt}:{current_carb_heat}:{current_throttle}\n"
 
     new_hash = hashlib.md5(datastr.encode()).digest()
 
@@ -75,6 +79,7 @@ mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
 mqtt_client.subscribe("cockpit/input/battery")
 mqtt_client.subscribe("cockpit/input/master-alt")
 mqtt_client.subscribe("cockpit/input/alt")
+mqtt_client.subscribe("cockpit/input/carb-heat")
 mqtt_client.subscribe("cockpit/input/throttle")
 mqtt_client.loop_start()
 print("[MQTT] Verbonden met broker")

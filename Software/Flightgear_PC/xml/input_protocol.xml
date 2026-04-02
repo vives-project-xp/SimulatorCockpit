@@ -20,6 +20,12 @@
       </chunk>
 
       <chunk>
+        <name>CarbHeat</name>
+        <node>/controls/anti-ice/engine/carb-heat</node>
+        <type>integer</type>
+      </chunk>
+
+      <chunk>
         <name>Throttle</name>
         <node>/controls/engines/engine[0]/throttle</node>
         <type>float</type>
