@@ -26,6 +26,12 @@
       </chunk>
 
       <chunk>
+        <name>PrimerLever</name>
+        <node>/controls/engines/engine/primer-lever</node>
+        <type>integer</type>
+      </chunk>
+
+      <chunk>
         <name>Magnetos</name>
         <node>/controls/switches/magnetos</node>
         <type>integer</type>
