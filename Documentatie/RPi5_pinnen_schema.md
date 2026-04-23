@@ -1,6 +1,6 @@
 # Raspberry Pi 5 pinnen schema
 
-Gebaseerd op `Software/testRPI/Nieuweknoppen.py`.
+Gebaseerd op `Software/testRPI/Nieuweknoppen.py` en de ADS1115 I2C-aansluiting uit de 38-3D handleiding: https://38-3d.co.uk/blogs/blog/using-the-ads1115-with-the-raspberry-pi.
 
 Alle inputs gebruiken `lgpio.SET_PULL_UP`. Sluit daarom elke knop/schakelaar aan tussen de GPIO-pin en GND. De interne pull-up houdt de pin hoog; bij contact naar GND wordt de pin laag.
 
@@ -32,6 +32,31 @@ Je mag eender welke GND-pin gebruiken. Handige GND-pinnen op de 40-pin header zi
 | pin 34 | GND |
 | pin 39 | GND |
 
+## ADS1115 ADC aansluiting
+
+De ADS1115 gebruikt I2C. Gebruik bij voorkeur 3.3V voor `VCC`/`VDD`, zodat de I2C-signalen veilig op Raspberry Pi-niveau blijven.
+
+| ADS1115 pin | Raspberry Pi 5 aansluiting | Fysieke pin | Opmerking |
+| --- | --- | --- | --- |
+| `VCC` / `VDD` | 3.3V | pin 1 of pin 17 | voeding voor ADC-module |
+| `GND` | GND | pin 6, 9, 14, 20, 25, 30, 34 of 39 | gemeenschappelijke ground |
+| `SDA` | GPIO2 / SDA1 | pin 3 | I2C data |
+| `SCL` | GPIO3 / SCL1 | pin 5 | I2C clock |
+| `ADDR` | GND | GND-pin naar keuze | optioneel; gebruikt adres `0x48` |
+| `A0` | analoge ingang 0 | niet op RPi-header | bijvoorbeeld potentiometer/sensor |
+| `A1` | analoge ingang 1 | niet op RPi-header | bijvoorbeeld potentiometer/sensor |
+| `A2` | analoge ingang 2 | niet op RPi-header | bijvoorbeeld potentiometer/sensor |
+| `A3` | analoge ingang 3 | niet op RPi-header | bijvoorbeeld potentiometer/sensor |
+
+Controle op de Raspberry Pi:
+
+```bash
+sudo raspi-config
+sudo i2cdetect -y 1
+```
+
+Als I2C aanstaat en de ADS1115 correct aangesloten is, zou het standaardadres meestal `0x48` moeten verschijnen.
+
 ## Visueel overzicht
 
 ```text
@@ -39,9 +64,9 @@ Raspberry Pi 5 40-pin header
 
 Linker rij                 Rechter rij
 ------------------------------------------------
- 1  3V3                    2  5V
- 3  GPIO2                  4  5V
- 5  GPIO3                  6  GND
+ 1  3V3     ADS VDD        2  5V
+ 3  GPIO2   ADS SDA        4  5V
+ 5  GPIO3   ADS SCL        6  GND     ADS GND
  7  GPIO4                  8  GPIO14
  9  GND                   10  GPIO15
 11  GPIO17  Battery       12  GPIO18  Primer
@@ -64,3 +89,5 @@ Linker rij                 Rechter rij
 ## Belangrijk
 
 Gebruik geen 5V of 3V3 voor deze schakelaars. Door de interne pull-up is alleen een verbinding van GPIO naar GND nodig.
+
+Voor de ADS1115: als je de ADC op 3.3V voedt, zorg dan dat de analoge signalen op `A0`-`A3` ook niet boven 3.3V komen.
