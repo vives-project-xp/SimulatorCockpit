@@ -31,9 +31,9 @@ root.update_idletasks()
 SCREEN_W = root.winfo_screenwidth()
 SCREEN_H = root.winfo_screenheight()
 
-# 3 gauges naast elkaar over de volledige breedte
-GAUGE_W = SCREEN_W // 3
-GAUGE_H = SCREEN_H
+# 3 gauges naast elkaar op een geroteerd display (OS y-as = fysieke x-as)
+GAUGE_W = SCREEN_W
+GAUGE_H = SCREEN_H // 3
 
 GCX = GAUGE_W // 2
 GCY = GAUGE_H // 2
@@ -68,8 +68,8 @@ def draw_airspeed_static():
                              style="arc", outline=color, width=10, tags="static")
 
     draw_zone(0, 120, "lime")
-    draw_zone(120, 160, "yellow")
-    draw_zone(160, 180, "red")
+    draw_zone(120, 140, "yellow")
+    draw_zone(140, 180, "red")
 
     for speed in range(0, TOTAL_SPEED + 1, 20):
         a_rad = math.radians(speed_to_angle_deg(speed))
@@ -108,7 +108,7 @@ draw_airspeed_static()
 # ================= ATTITUDE =================
 
 att_canvas = tk.Canvas(root, width=GAUGE_W, height=GAUGE_H, bg="black", highlightthickness=0)
-att_canvas.place(x=GAUGE_W, y=0)
+att_canvas.place(x=0, y=GAUGE_H)
 
 def draw_attitude(p, r):
     att_canvas.delete("all")
@@ -165,7 +165,7 @@ def draw_attitude(p, r):
 # ================= COMPASS =================
 
 comp_canvas = tk.Canvas(root, width=GAUGE_W, height=GAUGE_H, bg="black", highlightthickness=0)
-comp_canvas.place(x=GAUGE_W * 2, y=0)
+comp_canvas.place(x=0, y=GAUGE_H * 2)
 
 def draw_compass(heading):
     comp_canvas.delete("all")
