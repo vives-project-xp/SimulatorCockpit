@@ -11,7 +11,7 @@ TOPIC_BATTERY = "cockpit/input/battery"
 TOPIC_TOGGLE = "cockpit/input/carb-heat"   # <-- aanpassen
 TOPIC_EXTRA = "cockpit/input/alt"          # <-- alt
 TOPIC_SLEUTEL = "cockpit/input/sleutel"    # <-- nieuw
-TOPIC_PRIMER = "cockpit/input/primer"
+TOPIC_PRIMER = "cockpit/input/primer-lever"
 
 TOPIC_SWITCH_1 = "cockpit/input/switch1"
 TOPIC_SWITCH_2 = "cockpit/input/switch2"
