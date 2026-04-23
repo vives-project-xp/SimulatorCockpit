@@ -18,224 +18,232 @@ display_heading = 0.0
 pitch = 0.0
 roll = 0.0
 
+TOTAL_SPEED = 180
+
 # ---------------- WINDOW ----------------
 
 root = tk.Tk()
-root.title("COCKPIT CONTROL PANEL")
+root.title("COCKPIT")
 root.attributes("-fullscreen", True)
 root.configure(bg="black")
-
-# Haal de schermgrootte op
 root.update_idletasks()
+
 SCREEN_W = root.winfo_screenwidth()
 SCREEN_H = root.winfo_screenheight()
 
-# Het scherm is fysiek liggend maar wordt getoond als staand (of omgekeerd).
-# We tekenen alles alsof het scherm 90° gedraaid is:
-# - Beschikbare breedte (voor ons: SCREEN_H) wordt verdeeld in 3 gauges
-# - Beschikbare hoogte (voor ons: SCREEN_W) is de hoogte van elke gauge
+# 3 gauges naast elkaar over de volledige breedte
+GAUGE_W = SCREEN_W // 3
+GAUGE_H = SCREEN_H
 
-# Gauge grootte berekening: 3 gauges naast elkaar op het geroteerde scherm
-GAUGE_SIZE = SCREEN_H // 3
-CENTER = GAUGE_SIZE // 2
-RADIUS = int(CENTER * 0.72)
-TOTAL_SPEED = 180
+GCX = GAUGE_W // 2
+GCY = GAUGE_H // 2
+GR  = min(GCX, GCY) - 15
 
-# Hoofdframe op volledig scherm, zwart
-main_frame = tk.Frame(root, bg="black")
-main_frame.pack(fill="both", expand=True)
-
-# Canvas dat het volledige scherm beslaat, waarop alles geroteerd wordt getekend
-CANVAS_W = SCREEN_W
-CANVAS_H = SCREEN_H
-
-master_canvas = tk.Canvas(main_frame, width=CANVAS_W, height=CANVAS_H, bg="black", highlightthickness=0)
-master_canvas.pack(fill="both", expand=True)
-
-# De drie sub-canvassen worden als "windows" in de master canvas geplaatst.
-# We plaatsen ze GEROTEERD: ze komen horizontaal naast elkaar,
-# maar omdat het scherm 90° gedraaid is, lijken ze verticaal gestapeld.
-
-# Positie van de 3 gauge-vensters op het geroteerde scherm:
-# Elk gauge neemt 1/3 van de hoogte in beslag (SCREEN_H // 3)
-# De breedte is het volledige scherm (SCREEN_W)
-GAUGE_W = SCREEN_W
-GAUGE_H = SCREEN_H // 3
+def rot90(gx, gy, cx, cy):
+    """Draai punt (gx,gy) 90 graden met de klok mee rond (cx,cy)."""
+    dx = gx - cx
+    dy = gy - cy
+    return cx + dy, cy - dx
 
 # ================= AIRSPEED =================
 
-airspeed_canvas = tk.Canvas(master_canvas, width=GAUGE_W, height=GAUGE_H, bg="black", highlightthickness=0)
-master_canvas.create_window(0, 0, anchor="nw", window=airspeed_canvas)
+as_canvas = tk.Canvas(root, width=GAUGE_W, height=GAUGE_H, bg="black", highlightthickness=0)
+as_canvas.place(x=0, y=0)
 
-AS_CX = GAUGE_W // 2
-AS_CY = GAUGE_H // 2
-AS_R = min(AS_CX, AS_CY) - 20
-
-def speed_to_angle(speed):
+def speed_to_angle_deg(speed):
     return -210 + (speed / TOTAL_SPEED) * 240
 
-def draw_airspeed():
-    airspeed_canvas.delete("all")
-    airspeed_canvas.create_oval(
-        AS_CX - AS_R - 15, AS_CY - AS_R - 15,
-        AS_CX + AS_R + 15, AS_CY + AS_R + 15,
-        outline="white", width=4
-    )
+def draw_airspeed_static():
+    as_canvas.delete("static")
+    cx, cy, r = GCX, GCY, GR
+
+    as_canvas.create_oval(cx-r-12, cy-r-12, cx+r+12, cy+r+12,
+                          outline="white", width=3, tags="static")
 
     def draw_zone(start, end, color):
-        start_angle = speed_to_angle(start) + 180
-        end_angle = speed_to_angle(end) + 180
-        airspeed_canvas.create_arc(
-            AS_CX - AS_R, AS_CY - AS_R,
-            AS_CX + AS_R, AS_CY + AS_R,
-            start=start_angle,
-            extent=end_angle - start_angle,
-            style="arc",
-            outline=color,
-            width=12
-        )
+        sa = speed_to_angle_deg(start) + 180
+        ea = speed_to_angle_deg(end) + 180
+        as_canvas.create_arc(cx-r, cy-r, cx+r, cy+r,
+                             start=sa - 90, extent=ea - sa,
+                             style="arc", outline=color, width=10, tags="static")
 
     draw_zone(0, 120, "lime")
     draw_zone(120, 160, "yellow")
     draw_zone(160, 180, "red")
 
     for speed in range(0, TOTAL_SPEED + 1, 20):
-        angle = math.radians(speed_to_angle(speed))
-        x1 = AS_CX + (AS_R - 12) * math.cos(angle)
-        y1 = AS_CY + (AS_R - 12) * math.sin(angle)
-        x2 = AS_CX + AS_R * math.cos(angle)
-        y2 = AS_CY + AS_R * math.sin(angle)
-        airspeed_canvas.create_line(x1, y1, x2, y2, fill="white", width=2)
-        tx = AS_CX + (AS_R - 32) * math.cos(angle)
-        ty = AS_CY + (AS_R - 32) * math.sin(angle)
-        airspeed_canvas.create_text(tx, ty, text=str(speed), fill="white", font=("Arial", max(10, AS_R // 14)))
+        a_rad = math.radians(speed_to_angle_deg(speed))
+        gx_out = cx + r * math.cos(a_rad)
+        gy_out = cy + r * math.sin(a_rad)
+        gx_in  = cx + (r - 14) * math.cos(a_rad)
+        gy_in  = cy + (r - 14) * math.sin(a_rad)
+        gx_txt = cx + (r - 34) * math.cos(a_rad)
+        gy_txt = cy + (r - 34) * math.sin(a_rad)
 
-    airspeed_canvas.create_text(AS_CX, AS_CY + AS_R // 2, text="AIRSPEED", fill="white", font=("Arial", max(10, AS_R // 10), "bold"))
+        ox, oy = rot90(gx_out, gy_out, cx, cy)
+        ix, iy = rot90(gx_in,  gy_in,  cx, cy)
+        tx, ty = rot90(gx_txt, gy_txt, cx, cy)
+
+        as_canvas.create_line(ix, iy, ox, oy, fill="white", width=2, tags="static")
+        as_canvas.create_text(tx, ty, text=str(speed), fill="white",
+                              font=("Arial", max(9, GR // 14)), tags="static")
+
+    lx, ly = rot90(cx, cy + GR // 2 + 20, cx, cy)
+    as_canvas.create_text(lx, ly, text="AIRSPEED", fill="white",
+                          font=("Arial", max(9, GR // 11), "bold"),
+                          angle=90, tags="static")
 
 def draw_airspeed_needle(speed):
-    airspeed_canvas.delete("needle")
-    angle = math.radians(speed_to_angle(speed))
-    x = AS_CX + (AS_R - 30) * math.cos(angle)
-    y = AS_CY + (AS_R - 30) * math.sin(angle)
-    airspeed_canvas.create_line(AS_CX, AS_CY, x, y, fill="red", width=3, tags="needle")
-    airspeed_canvas.create_oval(AS_CX - 5, AS_CY - 5, AS_CX + 5, AS_CY + 5, fill="white", tags="needle")
+    as_canvas.delete("needle")
+    cx, cy, r = GCX, GCY, GR
+    a_rad = math.radians(speed_to_angle_deg(speed))
+    gx = cx + (r - 28) * math.cos(a_rad)
+    gy = cy + (r - 28) * math.sin(a_rad)
+    nx, ny = rot90(gx, gy, cx, cy)
+    as_canvas.create_line(cx, cy, nx, ny, fill="red", width=3, tags="needle")
+    as_canvas.create_oval(cx-5, cy-5, cx+5, cy+5, fill="white", tags="needle")
 
-draw_airspeed()
+draw_airspeed_static()
 
 # ================= ATTITUDE =================
 
-att_canvas = tk.Canvas(master_canvas, width=GAUGE_W, height=GAUGE_H, bg="black", highlightthickness=0)
-master_canvas.create_window(0, GAUGE_H, anchor="nw", window=att_canvas)
-
-ATT_CX = GAUGE_W // 2
-ATT_CY = GAUGE_H // 2
-ATT_R = min(ATT_CX, ATT_CY) - 20
+att_canvas = tk.Canvas(root, width=GAUGE_W, height=GAUGE_H, bg="black", highlightthickness=0)
+att_canvas.place(x=GAUGE_W, y=0)
 
 def draw_attitude(p, r):
     att_canvas.delete("all")
+    cx, cy = GCX, GCY
+    radius = GR
+    offset = int(p * 2)
 
-    # Clipping via ovaal simuleren met pixel-per-pixel invulling (originele aanpak)
-    # Maar nu aangepast aan het nieuwe canvas formaat
-    offset = p * 2
-    for y in range(GAUGE_H):
-        color = "#4da6ff" if y < ATT_CY + offset else "#8B4513"
-        att_canvas.create_line(0, y, GAUGE_W, y, fill=color)
+    horizon_g = cy + offset
+    rad_r = math.radians(r)
+    margin = GAUGE_W + GAUGE_H
 
-    rad = math.radians(r)
+    hx1_g = cx - margin * math.cos(rad_r)
+    hy1_g = horizon_g - margin * math.sin(rad_r)
+    hx2_g = cx + margin * math.cos(rad_r)
+    hy2_g = horizon_g + margin * math.sin(rad_r)
 
-    def rot(x, y):
-        dx = x - ATT_CX
-        dy = y - ATT_CY
-        rx = dx * math.cos(rad) - dy * math.sin(rad)
-        ry = dx * math.sin(rad) + dy * math.cos(rad)
-        return ATT_CX + rx, ATT_CY + ry + offset
+    sx = math.sin(rad_r)
+    sy = -math.cos(rad_r)  # omhoog in gauge (lucht)
 
-    x1, y1 = rot(0, ATT_CY)
-    x2, y2 = rot(GAUGE_W, ATT_CY)
-    att_canvas.create_line(x1, y1, x2, y2, fill="white", width=6)
-    att_canvas.create_line(ATT_CX - 30, ATT_CY, ATT_CX + 30, ATT_CY, fill="white", width=4)
-    att_canvas.create_line(ATT_CX, ATT_CY - 15, ATT_CX, ATT_CY + 15, fill="white", width=4)
-    att_canvas.create_oval(
-        ATT_CX - ATT_R, ATT_CY - ATT_R,
-        ATT_CX + ATT_R, ATT_CY + ATT_R,
-        outline="white", width=3
-    )
-    att_canvas.create_text(ATT_CX, ATT_CY + ATT_R + 15, text="ATTITUDE", fill="white", font=("Arial", max(10, ATT_R // 10), "bold"))
+    ax1_g = hx1_g + margin * sx
+    ay1_g = hy1_g + margin * sy
+    ax2_g = hx2_g + margin * sx
+    ay2_g = hy2_g + margin * sy
+
+    def r90(gx, gy): return rot90(gx, gy, cx, cy)
+
+    p1 = r90(hx1_g, hy1_g)
+    p2 = r90(hx2_g, hy2_g)
+    p3 = r90(ax2_g, ay2_g)
+    p4 = r90(ax1_g, ay1_g)
+
+    # Grond achtergrond
+    att_canvas.create_rectangle(0, 0, GAUGE_W, GAUGE_H, fill="#8B4513", outline="")
+    # Lucht polygon
+    att_canvas.create_polygon(p1, p2, p3, p4, fill="#4da6ff", outline="")
+
+    # Horizon-lijn
+    hc1 = r90(hx1_g, hy1_g)
+    hc2 = r90(hx2_g, hy2_g)
+    att_canvas.create_line(hc1[0], hc1[1], hc2[0], hc2[1], fill="white", width=5)
+
+    # Kruisje midden
+    att_canvas.create_line(cx-28, cy, cx+28, cy, fill="white", width=4)
+    att_canvas.create_line(cx, cy-14, cx, cy+14, fill="white", width=4)
+
+    # Buitenste cirkel
+    att_canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius,
+                           outline="white", width=3)
+
+    lx, ly = rot90(cx, cy + radius + 20, cx, cy)
+    att_canvas.create_text(lx, ly, text="ATTITUDE", fill="white",
+                           font=("Arial", max(9, GR // 11), "bold"), angle=90)
 
 # ================= COMPASS =================
 
-compass_canvas = tk.Canvas(master_canvas, width=GAUGE_W, height=GAUGE_H, bg="black", highlightthickness=0)
-master_canvas.create_window(0, GAUGE_H * 2, anchor="nw", window=compass_canvas)
-
-COMP_CX = GAUGE_W // 2
-COMP_CY = GAUGE_H // 2
-COMP_R = min(COMP_CX, COMP_CY) - 20
+comp_canvas = tk.Canvas(root, width=GAUGE_W, height=GAUGE_H, bg="black", highlightthickness=0)
+comp_canvas.place(x=GAUGE_W * 2, y=0)
 
 def draw_compass(heading):
-    compass_canvas.delete("all")
-    compass_canvas.create_oval(
-        COMP_CX - COMP_R, COMP_CY - COMP_R,
-        COMP_CX + COMP_R, COMP_CY + COMP_R,
-        outline="white", width=3
-    )
+    comp_canvas.delete("all")
+    cx, cy, r = GCX, GCY, GR
+
+    comp_canvas.create_oval(cx-r, cy-r, cx+r, cy+r, outline="white", width=3)
+
     for deg in range(0, 360, 5):
-        angle = math.radians(deg - heading - 90)
+        a_deg = deg - heading - 90
+        a_rad = math.radians(a_deg)
+
         if deg % 30 == 0:
-            inner = COMP_R - 22; width = 3
+            inner = r - 22; lw = 3
         elif deg % 10 == 0:
-            inner = COMP_R - 15; width = 2
+            inner = r - 15; lw = 2
         else:
-            inner = COMP_R - 10; width = 1
-        x1 = COMP_CX + inner * math.cos(angle)
-        y1 = COMP_CY + inner * math.sin(angle)
-        x2 = COMP_CX + COMP_R * math.cos(angle)
-        y2 = COMP_CY + COMP_R * math.sin(angle)
-        compass_canvas.create_line(x1, y1, x2, y2, fill="white", width=width)
+            inner = r - 10; lw = 1
+
+        gx1 = cx + inner * math.cos(a_rad)
+        gy1 = cy + inner * math.sin(a_rad)
+        gx2 = cx + r * math.cos(a_rad)
+        gy2 = cy + r * math.sin(a_rad)
+
+        x1, y1 = rot90(gx1, gy1, cx, cy)
+        x2, y2 = rot90(gx2, gy2, cx, cy)
+        comp_canvas.create_line(x1, y1, x2, y2, fill="white", width=lw)
+
         if deg % 30 == 0:
-            tx = COMP_CX + (COMP_R - 40) * math.cos(angle)
-            ty = COMP_CY + (COMP_R - 40) * math.sin(angle)
-            text = {0: "N", 90: "O", 180: "Z", 270: "W"}.get(deg, str(deg))
+            tx_g = cx + (r - 42) * math.cos(a_rad)
+            ty_g = cy + (r - 42) * math.sin(a_rad)
+            tx, ty = rot90(tx_g, ty_g, cx, cy)
+            label = {0: "N", 90: "O", 180: "Z", 270: "W"}.get(deg, str(deg))
             color = "yellow" if deg in [0, 90, 180, 270] else "white"
-            compass_canvas.create_text(tx, ty, text=text, fill=color, font=("Arial", max(10, COMP_R // 10), "bold"))
-    compass_canvas.create_polygon(
-        COMP_CX, COMP_CY - int(COMP_R * 0.55),
-        COMP_CX - 8, COMP_CY - int(COMP_R * 0.37),
-        COMP_CX + 8, COMP_CY - int(COMP_R * 0.37),
-        fill="red"
-    )
-    compass_canvas.create_line(COMP_CX, COMP_CY - int(COMP_R * 0.37), COMP_CX, COMP_CY + int(COMP_R * 0.37), fill="red", width=3)
-    compass_canvas.create_text(COMP_CX, COMP_CY + COMP_R + 15, text="HEADING", fill="white", font=("Arial", max(10, COMP_R // 10), "bold"))
+            comp_canvas.create_text(tx, ty, text=label, fill=color,
+                                    font=("Arial", max(9, r // 10), "bold"), angle=90)
 
-# ================= CONTROLS (verborgen overlay rechtsonder) =================
+    tip_g   = (cx, cy - int(r * 0.55))
+    left_g  = (cx - 8, cy - int(r * 0.37))
+    right_g = (cx + 8, cy - int(r * 0.37))
+    down_g  = (cx, cy + int(r * 0.37))
 
-# Kleine log en controls in een klein frame rechtsonder (overlay op master canvas)
-control_frame = tk.Frame(master_canvas, bg="black")
-master_canvas.create_window(CANVAS_W, CANVAS_H, anchor="se", window=control_frame)
+    tip   = rot90(*tip_g,   cx, cy)
+    left  = rot90(*left_g,  cx, cy)
+    right = rot90(*right_g, cx, cy)
+    down  = rot90(*down_g,  cx, cy)
 
-def toggle_battery():
-    global battery_state
-    battery_state = 1 - battery_state
-    label = "ON" if battery_state else "OFF"
-    battery_btn.config(text=f"BATTERY: {label}")
-    client.publish(TOPIC_BATTERY, str(battery_state))
+    comp_canvas.create_polygon(tip, left, right, fill="red")
+    comp_canvas.create_line(down[0], down[1], tip[0], tip[1], fill="red", width=3)
 
-battery_btn = tk.Button(control_frame, text="BATTERY: OFF", command=toggle_battery,
-                        font=("Arial", 12), bg="#222", fg="white")
-battery_btn.pack(pady=4)
+    lx, ly = rot90(cx, cy + r + 20, cx, cy)
+    comp_canvas.create_text(lx, ly, text="HEADING", fill="white",
+                            font=("Arial", max(9, GR // 11), "bold"), angle=90)
 
-def send_throttle(value):
-    val = round(float(value), 2)
-    client.publish(TOPIC_THROTTLE, str(val))
+# ================= MQTT =================
 
-tk.Scale(control_frame, from_=0, to=1, resolution=0.01,
-         orient=tk.HORIZONTAL, length=200,
-         command=send_throttle, bg="black", fg="white",
-         troughcolor="#333", highlightthickness=0).pack(pady=4)
+client = mqtt.Client()
 
-log = tk.Text(control_frame, height=5, width=35, bg="#111", fg="#0f0", font=("Courier", 9))
-log.pack()
+def on_message(mqttclient, userdata, msg):
+    global airspeed_value, heading_value, pitch, roll
+    message = msg.payload.decode()
+    if msg.topic == TOPIC_AIRSPEED:
+        airspeed_value = float(message)
+    elif msg.topic == TOPIC_HEADING:
+        heading_value = float(message)
+    elif msg.topic == TOPIC_ATTITUDE:
+        try:
+            p, r = message.split(",")
+            pitch = float(p)
+            roll = float(r)
+        except:
+            pass
 
-# ================= UPDATE =================
+client.on_message = on_message
+client.connect(BROKER, 1883, 60)
+client.subscribe(TOPIC_MONITOR)
+client.loop_start()
+
+# ================= UPDATE LOOP =================
 
 def update_ui():
     global display_heading
@@ -251,31 +259,4 @@ def update_ui():
     root.after(50, update_ui)
 
 update_ui()
-
-# ================= MQTT =================
-
-client = mqtt.Client()
-
-def on_message(client, userdata, msg):
-    global airspeed_value, heading_value, pitch, roll
-    message = msg.payload.decode()
-    if msg.topic == TOPIC_AIRSPEED:
-        airspeed_value = float(message)
-    elif msg.topic == TOPIC_HEADING:
-        heading_value = float(message)
-    elif msg.topic == TOPIC_ATTITUDE:
-        try:
-            p, r = message.split(",")
-            pitch = float(p)
-            roll = float(r)
-        except:
-            pass
-    log.insert(tk.END, f"{msg.topic}: {message}\n")
-    log.see(tk.END)
-
-client.on_message = on_message
-client.connect(BROKER, 1883, 60)
-client.subscribe(TOPIC_MONITOR)
-client.loop_start()
-
 root.mainloop()
