@@ -16,6 +16,7 @@ UDP_PORT = 5500
 
 MQTT_BROKER = "10.10.229.190"
 MQTT_PORT = 1883
+PRIMER_TOPICS = ("cockpit/input/primer-lever", "cockpit/input/primer")
 
 # =========================
 # TCP CONNECTIE (INPUT)
@@ -57,7 +58,7 @@ def on_message(client, userdata, msg):
         elif topic == "cockpit/input/carb-heat":
             current_carb_heat = int(payload)
 
-        elif topic == "cockpit/input/primer-lever":
+        elif topic in PRIMER_TOPICS:
             current_primer_lever = int(payload)
 
         elif topic == "cockpit/input/sleutel":
@@ -92,7 +93,8 @@ mqtt_client.subscribe("cockpit/input/battery")
 mqtt_client.subscribe("cockpit/input/master-alt")
 mqtt_client.subscribe("cockpit/input/alt")
 mqtt_client.subscribe("cockpit/input/carb-heat")
-mqtt_client.subscribe("cockpit/input/primer-lever")
+for primer_topic in PRIMER_TOPICS:
+    mqtt_client.subscribe(primer_topic)
 mqtt_client.subscribe("cockpit/input/sleutel")
 mqtt_client.subscribe("cockpit/input/throttle")
 mqtt_client.loop_start()

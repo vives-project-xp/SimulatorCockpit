@@ -8,9 +8,16 @@ import time
 BROKER = "localhost"
 
 TOPIC_BATTERY = "cockpit/input/battery"
+<<<<<<< HEAD
 TOPIC_TOGGLE = "cockpit/input/carb-heat"
 TOPIC_EXTRA = "cockpit/input/alt"
 TOPIC_PRIMER = "cockpit/input/primer"
+=======
+TOPIC_TOGGLE = "cockpit/input/carb-heat"   # <-- aanpassen
+TOPIC_EXTRA = "cockpit/input/alt"          # <-- alt
+TOPIC_SLEUTEL = "cockpit/input/sleutel"    # <-- nieuw
+TOPIC_PRIMER = "cockpit/input/primer-lever"
+>>>>>>> 23142ba7348ab148d7df31592e61bd851463d6c9
 
 # 👉 NIEUW: alles via magnetos
 TOPIC_MAGNETOS = "cockpit/input/magnetos"
