@@ -12,9 +12,11 @@ TOPIC_TOGGLE = "cockpit/input/carb-heat"
 TOPIC_EXTRA = "cockpit/input/alt"
 TOPIC_PRIMER = "cockpit/input/primer"
 
-# 👉 NIEUW
-TOPIC_MAGNETOS_SWITCHES = "cockpit/input/magnetos/switches"
-TOPIC_MAGNETOS_SLEUTEL = "cockpit/input/magnetos/sleutel"
+# 👉 CORRECTE MAGNETOS STRUCTUUR
+TOPIC_SWITCH_1 = "cockpit/input/magnetos/switch1"
+TOPIC_SWITCH_2 = "cockpit/input/magnetos/switch2"
+TOPIC_SWITCH_3 = "cockpit/input/magnetos/switch3"
+TOPIC_SLEUTEL = "cockpit/input/magnetos/sleutel"
 
 BUTTON_PIN = 17
 TOGGLE_BUTTON_PIN = 27
@@ -102,13 +104,13 @@ try:
             last_extra_state = state
 
         # ========================
-        # SLEUTEL → eigen topic
+        # SLEUTEL
         # ========================
         val = lgpio.gpio_read(chip, SLEUTEL_PIN)
         state = 1 if val == 1 else 0
 
         if state != last_sleutel_state:
-            client.publish(TOPIC_MAGNETOS_SLEUTEL, str(state))
+            client.publish(TOPIC_SLEUTEL, str(state))
             print("Sleutel:", state)
             last_sleutel_state = state
 
@@ -126,15 +128,14 @@ try:
         last_primer_gpio = val
 
         # ========================
-        # SWITCH 1 → switches topic
+        # SWITCH 1
         # ========================
         val = lgpio.gpio_read(chip, SWITCH_1_PIN)
         state = 1 if val == 1 else 0
 
         if state != last_switch_1_state:
-            payload = f"switch1:{state}"
-            client.publish(TOPIC_MAGNETOS_SWITCHES, payload)
-            print(payload)
+            client.publish(TOPIC_SWITCH_1, str(state))
+            print("Switch1:", state)
             last_switch_1_state = state
 
         # ========================
@@ -144,9 +145,8 @@ try:
         state = 1 if val == 1 else 0
 
         if state != last_switch_2_state:
-            payload = f"switch2:{state}"
-            client.publish(TOPIC_MAGNETOS_SWITCHES, payload)
-            print(payload)
+            client.publish(TOPIC_SWITCH_2, str(state))
+            print("Switch2:", state)
             last_switch_2_state = state
 
         # ========================
@@ -156,9 +156,8 @@ try:
         state = 1 if val == 1 else 0
 
         if state != last_switch_3_state:
-            payload = f"switch3:{state}"
-            client.publish(TOPIC_MAGNETOS_SWITCHES, payload)
-            print(payload)
+            client.publish(TOPIC_SWITCH_3, str(state))
+            print("Switch3:", state)
             last_switch_3_state = state
 
         time.sleep(0.05)
