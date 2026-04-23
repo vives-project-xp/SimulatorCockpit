@@ -17,6 +17,12 @@ UDP_PORT = 5500
 MQTT_BROKER = "10.10.229.190"
 MQTT_PORT = 1883
 PRIMER_TOPICS = ("cockpit/input/primer-lever", "cockpit/input/primer")
+MAGNETOS_ENABLE_TOPIC = "cockpit/input/magnetos/sleutel"
+MAGNETOS_SWITCH_TOPICS = {
+    "cockpit/input/magnetos/switch1": 1,
+    "cockpit/input/magnetos/switch2": 2,
+    "cockpit/input/magnetos/switch3": 3,
+}
 
 # =========================
 # TCP CONNECTIE (INPUT)
@@ -32,7 +38,13 @@ current_battery = 0
 current_master_alt = 0
 current_carb_heat = 0
 current_primer_lever = 0
-current_sleutel = 0
+current_magnetos_enabled = 0
+current_magnetos_switches = {
+    1: 0,
+    2: 0,
+    3: 0,
+}
+current_magnetos = 0
 current_throttle = 0.0
 current_attitude_pitch = 0.0
 current_attitude_roll = 0.0
@@ -41,9 +53,25 @@ old_hash = b""
 # =========================
 # MQTT CALLBACK
 # =========================
+def calculate_magnetos():
+    if current_magnetos_enabled == 0:
+        return 0
+
+    if current_magnetos_switches[3] == 1:
+        return 4
+
+    if current_magnetos_switches[2] == 1:
+        return 2
+
+    if current_magnetos_switches[1] == 1:
+        return 1
+
+    return 3
+
+
 def on_message(client, userdata, msg):
     global current_battery, current_master_alt, current_carb_heat, current_primer_lever
-    global current_sleutel, current_throttle, old_hash
+    global current_magnetos_enabled, current_magnetos, current_throttle, old_hash
 
     topic = msg.topic
     payload = msg.payload.decode().strip()
@@ -61,8 +89,12 @@ def on_message(client, userdata, msg):
         elif topic in PRIMER_TOPICS:
             current_primer_lever = int(payload)
 
-        elif topic == "cockpit/input/sleutel":
-            current_sleutel = 3 if int(payload) == 1 else 0
+        elif topic == MAGNETOS_ENABLE_TOPIC:
+            current_magnetos_enabled = int(payload)
+
+        elif topic in MAGNETOS_SWITCH_TOPICS:
+            switch_number = MAGNETOS_SWITCH_TOPICS[topic]
+            current_magnetos_switches[switch_number] = int(payload)
 
         elif topic == "cockpit/input/throttle":
             current_throttle = float(payload)
@@ -70,10 +102,12 @@ def on_message(client, userdata, msg):
     except ValueError:
         return
 
+    current_magnetos = calculate_magnetos()
+
     # BELANGRIJK: volgorde moet exact overeenkomen met XML chunks
     datastr = (
         f"{current_battery}:{current_master_alt}:{current_carb_heat}:"
-        f"{current_primer_lever}:{current_sleutel}:{current_throttle}\n"
+        f"{current_primer_lever}:{current_magnetos}:{current_throttle}\n"
     )
 
     new_hash = hashlib.md5(datastr.encode()).digest()
@@ -95,7 +129,9 @@ mqtt_client.subscribe("cockpit/input/alt")
 mqtt_client.subscribe("cockpit/input/carb-heat")
 for primer_topic in PRIMER_TOPICS:
     mqtt_client.subscribe(primer_topic)
-mqtt_client.subscribe("cockpit/input/sleutel")
+mqtt_client.subscribe(MAGNETOS_ENABLE_TOPIC)
+for magnetos_switch_topic in MAGNETOS_SWITCH_TOPICS:
+    mqtt_client.subscribe(magnetos_switch_topic)
 mqtt_client.subscribe("cockpit/input/throttle")
 mqtt_client.loop_start()
 print("[MQTT] Verbonden met broker")
