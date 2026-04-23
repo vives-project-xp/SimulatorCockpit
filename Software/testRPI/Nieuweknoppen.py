@@ -8,14 +8,12 @@ import time
 BROKER = "localhost"
 
 TOPIC_BATTERY = "cockpit/input/battery"
-TOPIC_TOGGLE = "cockpit/input/carb-heat"   # <-- aanpassen
-TOPIC_EXTRA = "cockpit/input/alt"          # <-- alt
-TOPIC_SLEUTEL = "cockpit/input/sleutel"    # <-- nieuw
+TOPIC_TOGGLE = "cockpit/input/carb-heat"
+TOPIC_EXTRA = "cockpit/input/alt"
 TOPIC_PRIMER = "cockpit/input/primer"
 
-TOPIC_SWITCH_1 = "cockpit/input/switch1"
-TOPIC_SWITCH_2 = "cockpit/input/switch2"
-TOPIC_SWITCH_3 = "cockpit/input/switch3"
+# 👉 NIEUW: alles via magnetos
+TOPIC_MAGNETOS = "cockpit/input/magnetos"
 
 BUTTON_PIN = 17
 TOGGLE_BUTTON_PIN = 27
@@ -28,38 +26,28 @@ SWITCH_2_PIN = 25
 SWITCH_3_PIN = 5
 
 # ========================
-# GPIO SETUP (lgpio)
+# GPIO SETUP
 # ========================
-chip = lgpio.gpiochip_open(0)  # open gpiochip0
+chip = lgpio.gpiochip_open(0)
 
-# Batterij knop
 lgpio.gpio_claim_input(chip, BUTTON_PIN, lgpio.SET_PULL_UP)
-
-# Toggle knop (gewone knop)
 lgpio.gpio_claim_input(chip, TOGGLE_BUTTON_PIN, lgpio.SET_PULL_UP)
-
-# Extra gewone knop
 lgpio.gpio_claim_input(chip, EXTRA_BUTTON_PIN, lgpio.SET_PULL_UP)
-
-# Sleutel knop (momentary)
 lgpio.gpio_claim_input(chip, SLEUTEL_PIN, lgpio.SET_PULL_UP)
-
-# Primer knop
 lgpio.gpio_claim_input(chip, PRIMER_PIN, lgpio.SET_PULL_UP)
 
-# Extra schakelaars
 lgpio.gpio_claim_input(chip, SWITCH_1_PIN, lgpio.SET_PULL_UP)
 lgpio.gpio_claim_input(chip, SWITCH_2_PIN, lgpio.SET_PULL_UP)
 lgpio.gpio_claim_input(chip, SWITCH_3_PIN, lgpio.SET_PULL_UP)
 
 # ========================
-# MQTT SETUP
+# MQTT
 # ========================
 client = mqtt.Client()
 client.connect(BROKER, 1883, 60)
 client.loop_start()
 
-print("Battery + toggle + extra + sleutel + primer + 3 switches input started (lgpio)...")
+print("Cockpit input gestart (magnetos gecombineerd)...")
 
 # ========================
 # STATES
@@ -78,95 +66,100 @@ last_switch_3_state = None
 
 try:
     while True:
-        # ========================
-        # 1) BATTERY BUTTON
-        # ========================
-        current_battery_gpio = lgpio.gpio_read(chip, BUTTON_PIN)
-        battery_state = 1 if current_battery_gpio == 1 else 0
-
-        if battery_state != last_battery_state:
-            client.publish(TOPIC_BATTERY, str(battery_state))
-            print("Battery:", battery_state)
-            last_battery_state = battery_state
 
         # ========================
-        # 2) TOGGLE BUTTON (gewone knop)
+        # BATTERY
         # ========================
-        current_toggle_gpio = lgpio.gpio_read(chip, TOGGLE_BUTTON_PIN)
-        toggle_state = 1 if current_toggle_gpio == 1 else 0
+        val = lgpio.gpio_read(chip, BUTTON_PIN)
+        state = 1 if val == 1 else 0
 
-        if toggle_state != last_toggle_state:
-            client.publish(TOPIC_TOGGLE, str(toggle_state))
-            print("Carb-heat:", toggle_state)
-            last_toggle_state = toggle_state
-
-        # ========================
-        # 3) EXTRA BUTTON (gewone knop)
-        # ========================
-        current_extra_gpio = lgpio.gpio_read(chip, EXTRA_BUTTON_PIN)
-        extra_state = 1 if current_extra_gpio == 1 else 0
-
-        if extra_state != last_extra_state:
-            client.publish(TOPIC_EXTRA, str(extra_state))
-            print("Alt:", extra_state)
-            last_extra_state = extra_state
+        if state != last_battery_state:
+            client.publish(TOPIC_BATTERY, str(state))
+            print("Battery:", state)
+            last_battery_state = state
 
         # ========================
-        # 4) SLEUTEL (momentary start key)
+        # TOGGLE
         # ========================
-        current_sleutel_gpio = lgpio.gpio_read(chip, SLEUTEL_PIN)
-        sleutel_state = 1 if current_sleutel_gpio == 1 else 0
+        val = lgpio.gpio_read(chip, TOGGLE_BUTTON_PIN)
+        state = 1 if val == 1 else 0
 
-        if sleutel_state != last_sleutel_state:
-            client.publish(TOPIC_SLEUTEL, str(sleutel_state))
-            print("Sleutel:", sleutel_state)
-            last_sleutel_state = sleutel_state
+        if state != last_toggle_state:
+            client.publish(TOPIC_TOGGLE, str(state))
+            print("Carb-heat:", state)
+            last_toggle_state = state
 
         # ========================
-        # 5) PRIMER (toggle bij elke druk)
+        # EXTRA
         # ========================
-        current_primer_gpio = lgpio.gpio_read(chip, PRIMER_PIN)
+        val = lgpio.gpio_read(chip, EXTRA_BUTTON_PIN)
+        state = 1 if val == 1 else 0
 
-        if current_primer_gpio == 0 and last_primer_gpio == 1:
+        if state != last_extra_state:
+            client.publish(TOPIC_EXTRA, str(state))
+            print("Alt:", state)
+            last_extra_state = state
+
+        # ========================
+        # SLEUTEL → magnetos
+        # ========================
+        val = lgpio.gpio_read(chip, SLEUTEL_PIN)
+        state = 1 if val == 1 else 0
+
+        if state != last_sleutel_state:
+            payload = f"sleutel:{state}"
+            client.publish(TOPIC_MAGNETOS, payload)
+            print("Magnetos →", payload)
+            last_sleutel_state = state
+
+        # ========================
+        # PRIMER
+        # ========================
+        val = lgpio.gpio_read(chip, PRIMER_PIN)
+
+        if val == 0 and last_primer_gpio == 1:
             primer_state = 0 if primer_state == 1 else 1
             client.publish(TOPIC_PRIMER, str(primer_state))
             print("Primer:", primer_state)
-            time.sleep(0.2)  # debounce
+            time.sleep(0.2)
 
-        last_primer_gpio = current_primer_gpio
-
-        # ========================
-        # 6) SWITCH 1 (schakelaar)
-        # ========================
-        current_switch_1_gpio = lgpio.gpio_read(chip, SWITCH_1_PIN)
-        switch_1_state = 1 if current_switch_1_gpio == 1 else 0
-
-        if switch_1_state != last_switch_1_state:
-            client.publish(TOPIC_SWITCH_1, str(switch_1_state))
-            print("Switch 1:", switch_1_state)
-            last_switch_1_state = switch_1_state
+        last_primer_gpio = val
 
         # ========================
-        # 7) SWITCH 2 (schakelaar)
+        # SWITCH 1 → magnetos
         # ========================
-        current_switch_2_gpio = lgpio.gpio_read(chip, SWITCH_2_PIN)
-        switch_2_state = 1 if current_switch_2_gpio == 1 else 0
+        val = lgpio.gpio_read(chip, SWITCH_1_PIN)
+        state = 1 if val == 1 else 0
 
-        if switch_2_state != last_switch_2_state:
-            client.publish(TOPIC_SWITCH_2, str(switch_2_state))
-            print("Switch 2:", switch_2_state)
-            last_switch_2_state = switch_2_state
+        if state != last_switch_1_state:
+            payload = f"switch1:{state}"
+            client.publish(TOPIC_MAGNETOS, payload)
+            print("Magnetos →", payload)
+            last_switch_1_state = state
 
         # ========================
-        # 8) SWITCH 3 (schakelaar)
+        # SWITCH 2 → magnetos
         # ========================
-        current_switch_3_gpio = lgpio.gpio_read(chip, SWITCH_3_PIN)
-        switch_3_state = 1 if current_switch_3_gpio == 1 else 0
+        val = lgpio.gpio_read(chip, SWITCH_2_PIN)
+        state = 1 if val == 1 else 0
 
-        if switch_3_state != last_switch_3_state:
-            client.publish(TOPIC_SWITCH_3, str(switch_3_state))
-            print("Switch 3:", switch_3_state)
-            last_switch_3_state = switch_3_state
+        if state != last_switch_2_state:
+            payload = f"switch2:{state}"
+            client.publish(TOPIC_MAGNETOS, payload)
+            print("Magnetos →", payload)
+            last_switch_2_state = state
+
+        # ========================
+        # SWITCH 3 → magnetos
+        # ========================
+        val = lgpio.gpio_read(chip, SWITCH_3_PIN)
+        state = 1 if val == 1 else 0
+
+        if state != last_switch_3_state:
+            payload = f"switch3:{state}"
+            client.publish(TOPIC_MAGNETOS, payload)
+            print("Magnetos →", payload)
+            last_switch_3_state = state
 
         time.sleep(0.05)
 
