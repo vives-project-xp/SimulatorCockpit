@@ -8,19 +8,13 @@ import time
 BROKER = "localhost"
 
 TOPIC_BATTERY = "cockpit/input/battery"
-<<<<<<< HEAD
 TOPIC_TOGGLE = "cockpit/input/carb-heat"
 TOPIC_EXTRA = "cockpit/input/alt"
 TOPIC_PRIMER = "cockpit/input/primer"
-=======
-TOPIC_TOGGLE = "cockpit/input/carb-heat"   # <-- aanpassen
-TOPIC_EXTRA = "cockpit/input/alt"          # <-- alt
-TOPIC_SLEUTEL = "cockpit/input/sleutel"    # <-- nieuw
-TOPIC_PRIMER = "cockpit/input/primer-lever"
->>>>>>> 23142ba7348ab148d7df31592e61bd851463d6c9
 
-# 👉 NIEUW: alles via magnetos
-TOPIC_MAGNETOS = "cockpit/input/magnetos"
+# 👉 NIEUW
+TOPIC_MAGNETOS_SWITCHES = "cockpit/input/magnetos/switches"
+TOPIC_MAGNETOS_SLEUTEL = "cockpit/input/magnetos/sleutel"
 
 BUTTON_PIN = 17
 TOGGLE_BUTTON_PIN = 27
@@ -54,7 +48,7 @@ client = mqtt.Client()
 client.connect(BROKER, 1883, 60)
 client.loop_start()
 
-print("Cockpit input gestart (magnetos gecombineerd)...")
+print("Cockpit input gestart (magnetos correct)...")
 
 # ========================
 # STATES
@@ -108,15 +102,14 @@ try:
             last_extra_state = state
 
         # ========================
-        # SLEUTEL → magnetos
+        # SLEUTEL → eigen topic
         # ========================
         val = lgpio.gpio_read(chip, SLEUTEL_PIN)
         state = 1 if val == 1 else 0
 
         if state != last_sleutel_state:
-            payload = f"sleutel:{state}"
-            client.publish(TOPIC_MAGNETOS, payload)
-            print("Magnetos →", payload)
+            client.publish(TOPIC_MAGNETOS_SLEUTEL, str(state))
+            print("Sleutel:", state)
             last_sleutel_state = state
 
         # ========================
@@ -133,39 +126,39 @@ try:
         last_primer_gpio = val
 
         # ========================
-        # SWITCH 1 → magnetos
+        # SWITCH 1 → switches topic
         # ========================
         val = lgpio.gpio_read(chip, SWITCH_1_PIN)
         state = 1 if val == 1 else 0
 
         if state != last_switch_1_state:
             payload = f"switch1:{state}"
-            client.publish(TOPIC_MAGNETOS, payload)
-            print("Magnetos →", payload)
+            client.publish(TOPIC_MAGNETOS_SWITCHES, payload)
+            print(payload)
             last_switch_1_state = state
 
         # ========================
-        # SWITCH 2 → magnetos
+        # SWITCH 2
         # ========================
         val = lgpio.gpio_read(chip, SWITCH_2_PIN)
         state = 1 if val == 1 else 0
 
         if state != last_switch_2_state:
             payload = f"switch2:{state}"
-            client.publish(TOPIC_MAGNETOS, payload)
-            print("Magnetos →", payload)
+            client.publish(TOPIC_MAGNETOS_SWITCHES, payload)
+            print(payload)
             last_switch_2_state = state
 
         # ========================
-        # SWITCH 3 → magnetos
+        # SWITCH 3
         # ========================
         val = lgpio.gpio_read(chip, SWITCH_3_PIN)
         state = 1 if val == 1 else 0
 
         if state != last_switch_3_state:
             payload = f"switch3:{state}"
-            client.publish(TOPIC_MAGNETOS, payload)
-            print("Magnetos →", payload)
+            client.publish(TOPIC_MAGNETOS_SWITCHES, payload)
+            print(payload)
             last_switch_3_state = state
 
         time.sleep(0.05)
