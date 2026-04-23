@@ -124,6 +124,8 @@ sudo systemctl restart mosquitto
 ### LGPIO NOG DOEN NIET VERGETE?!!!!
 ---
 # ADC
+
+moet op 3.3V
 https://38-3d.co.uk/blogs/blog/using-the-ads1115-with-the-raspberry-pi
 
 ```python
