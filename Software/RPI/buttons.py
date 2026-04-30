@@ -77,7 +77,7 @@ try:
         # BATTERY
         # ========================
         val = lgpio.gpio_read(chip, BUTTON_PIN)
-        state = 1 if val == 1 else 0
+        state = 0 if val == 1 else 1
 
         if state != last_battery_state:
             client.publish(TOPIC_BATTERY, str(state))
@@ -134,7 +134,7 @@ try:
         # SWITCH 1
         # ========================
         val = lgpio.gpio_read(chip, SWITCH_1_PIN)
-        state = 1 if val == 1 else 0
+        state = 0 if val == 1 else 1
 
         if state != last_switch_1_state:
             client.publish(TOPIC_SWITCH_1, str(state))
@@ -145,7 +145,7 @@ try:
         # SWITCH 2
         # ========================
         val = lgpio.gpio_read(chip, SWITCH_2_PIN)
-        state = 1 if val == 1 else 0
+        state = 0 if val == 1 else 1
 
         if state != last_switch_2_state:
             client.publish(TOPIC_SWITCH_2, str(state))
@@ -156,7 +156,7 @@ try:
         # SWITCH 3
         # ========================
         val = lgpio.gpio_read(chip, SWITCH_3_PIN)
-        state = 1 if val == 1 else 0
+        state = 0 if val == 1 else 1
 
         if state != last_switch_3_state:
             client.publish(TOPIC_SWITCH_3, str(state))
