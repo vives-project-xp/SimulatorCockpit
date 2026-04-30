@@ -16,7 +16,7 @@ TOPIC_PRIMER = "cockpit/input/primer"
 TOPIC_SWITCH_1 = "cockpit/input/magnetos/switch1"
 TOPIC_SWITCH_2 = "cockpit/input/magnetos/switch2"
 TOPIC_SWITCH_3 = "cockpit/input/magnetos/switch3"
-TOPIC_SLEUTEL = "cockpit/input/magnetos/sleutel"
+TOPIC_SLEUTEL = "cockpit/input/magnetos/sleutel" //aanpassen sleutel
 
 BUTTON_PIN = 17
 TOGGLE_BUTTON_PIN = 27
