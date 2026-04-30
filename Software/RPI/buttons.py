@@ -1,11 +1,14 @@
+import os
+import time
+
 import lgpio
 import paho.mqtt.client as mqtt
-import time
 
 # ========================
 # CONFIG
 # ========================
-BROKER = "localhost"
+BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
 TOPIC_BATTERY = "cockpit/input/battery"
 TOPIC_TOGGLE = "cockpit/input/carb-heat"
@@ -16,7 +19,7 @@ TOPIC_PRIMER = "cockpit/input/primer"
 TOPIC_SWITCH_1 = "cockpit/input/magnetos/switch1"
 TOPIC_SWITCH_2 = "cockpit/input/magnetos/switch2"
 TOPIC_SWITCH_3 = "cockpit/input/magnetos/switch3"
-TOPIC_SLEUTEL = "cockpit/input/magnetos/sleutel" //aanpassen sleutel
+TOPIC_SLEUTEL = "cockpit/input/magnetos/sleutel"  # aanpassen sleutel
 
 BUTTON_PIN = 17
 TOGGLE_BUTTON_PIN = 27
@@ -47,7 +50,7 @@ lgpio.gpio_claim_input(chip, SWITCH_3_PIN, lgpio.SET_PULL_UP)
 # MQTT
 # ========================
 client = mqtt.Client()
-client.connect(BROKER, 1883, 60)
+client.connect(BROKER, MQTT_PORT, 60)
 client.loop_start()
 
 print("Cockpit input gestart (magnetos correct)...")

@@ -3,19 +3,20 @@ import paho.mqtt.client as mqtt
 import hashlib
 import threading
 import time
+import os
 
 
 # =========================
 # CONFIG
 # =========================
-FG_TCP_IP = "127.0.0.1"
-FG_TCP_PORT = 5600
+FG_TCP_IP = os.getenv("FG_TCP_IP", "127.0.0.1")
+FG_TCP_PORT = int(os.getenv("FG_TCP_PORT", "5600"))
 
-UDP_IP = "127.0.0.1"
-UDP_PORT = 5500
+UDP_IP = os.getenv("UDP_IP", "127.0.0.1")
+UDP_PORT = int(os.getenv("UDP_PORT", "5500"))
 
-MQTT_BROKER = "10.10.229.190"
-MQTT_PORT = 1883
+MQTT_BROKER = os.getenv("MQTT_BROKER", "10.10.229.190")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 PRIMER_TOPICS = ("cockpit/input/primer-lever", "cockpit/input/primer")
 MAGNETOS_ENABLE_TOPIC = "cockpit/input/magnetos/sleutel"
 MAGNETOS_SWITCH_TOPICS = {

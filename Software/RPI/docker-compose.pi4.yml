@@ -1,0 +1,13 @@
+services:
+  interface:
+    build: .
+    container_name: cockpit-interface
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      MQTT_BROKER: 10.10.229.190
+      MQTT_PORT: "1883"
+      DISPLAY: ${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    command: ["python3", "interface.py"]

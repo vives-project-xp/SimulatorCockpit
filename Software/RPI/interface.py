@@ -1,8 +1,10 @@
 import tkinter as tk
 import paho.mqtt.client as mqtt
 import math
+import os
 
-BROKER = "10.10.229.190"
+BROKER = os.getenv("MQTT_BROKER", "10.10.229.190")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
 TOPIC_THROTTLE = "cockpit/input/throttle"
 TOPIC_BATTERY = "cockpit/input/battery"
@@ -253,7 +255,7 @@ def on_message(mqttclient, userdata, msg):
             pass
 
 client.on_message = on_message
-client.connect(BROKER, 1883, 60)
+client.connect(BROKER, MQTT_PORT, 60)
 client.subscribe(TOPIC_MONITOR)
 client.loop_start()
 
