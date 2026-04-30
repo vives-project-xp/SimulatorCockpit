@@ -36,14 +36,14 @@ cat > "$AUTOSTART_FILE" <<EOF
 [Desktop Entry]
 Type=Application
 Name=Cockpit Interface
-Exec=sh -c 'xhost +SI:localuser:root; cd "$RPI_DIR"; docker compose -f docker-compose.pi4.yml up -d'
+Exec=sh -c 'xhost +local:; cd "$RPI_DIR"; docker compose -f docker-compose.pi4.yml up -d'
 Terminal=false
 X-GNOME-Autostart-enabled=true
 EOF
 
 if [ -n "${DISPLAY:-}" ]; then
   echo "[cockpit] Interface nu starten op display $DISPLAY"
-  xhost +SI:localuser:root
+  xhost +local:
   sudo docker compose -f docker-compose.pi4.yml up -d
 else
   echo "[cockpit] Geen DISPLAY gevonden. De interface start automatisch na desktop-login."
