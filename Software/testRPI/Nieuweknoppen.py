@@ -107,7 +107,7 @@ try:
         # SLEUTEL
         # ========================
         val = lgpio.gpio_read(chip, SLEUTEL_PIN)
-        state = 1 if val == 1 else 0
+        state = 0 if val == 1 else 1
 
         if state != last_sleutel_state:
             client.publish(TOPIC_SLEUTEL, str(state))
