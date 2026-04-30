@@ -12,7 +12,7 @@ TOPIC_TOGGLE = "cockpit/input/carb-heat"
 TOPIC_EXTRA = "cockpit/input/alt"
 TOPIC_PRIMER = "cockpit/input/primer"
 
-# 👉 CORRECTE MAGNETOS STRUCTUUR
+# CORRECTE MAGNETOS STRUCTUUR
 TOPIC_SWITCH_1 = "cockpit/input/magnetos/switch1"
 TOPIC_SWITCH_2 = "cockpit/input/magnetos/switch2"
 TOPIC_SWITCH_3 = "cockpit/input/magnetos/switch3"
