@@ -165,12 +165,12 @@ def draw_attitude(p, r):
     wl = int(GR * 0.40)
     wg = 12
     wt = max(6, GR // 14)
-    att_canvas.create_line(cx - wg, cy, cx - wl, cy, fill="yellow", width=lw)
-    att_canvas.create_line(cx - wl, cy - wt, cx - wl, cy + wt, fill="yellow", width=lw)
-    att_canvas.create_line(cx + wg, cy, cx + wl, cy, fill="yellow", width=lw)
-    att_canvas.create_line(cx + wl, cy - wt, cx + wl, cy + wt, fill="yellow", width=lw)
+    att_canvas.create_line(cx, cy - wg, cx, cy - wl, fill="yellow", width=lw)
+    att_canvas.create_line(cx - wt, cy - wl, cx + wt, cy - wl, fill="yellow", width=lw)
+    att_canvas.create_line(cx, cy + wg, cx, cy + wl, fill="yellow", width=lw)
+    att_canvas.create_line(cx - wt, cy + wl, cx + wt, cy + wl, fill="yellow", width=lw)
     att_canvas.create_oval(cx - 4, cy - 4, cx + 4, cy + 4, fill="yellow", outline="")
-    att_canvas.create_line(cx, cy - wg, cx, cy - wg - 12, fill="yellow", width=lw)
+    att_canvas.create_line(cx + wg, cy, cx + wg + 12, cy, fill="yellow", width=lw)
 
     lx, ly = rot90(cx, cy + radius + 20, cx, cy)
     att_canvas.create_text(lx, ly, text="ATTITUDE", fill="white",
