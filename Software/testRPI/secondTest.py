@@ -150,10 +150,6 @@ def draw_attitude(p, r):
     hc2 = r90(hx2_g, hy2_g)
     att_canvas.create_line(hc1[0], hc1[1], hc2[0], hc2[1], fill="white", width=5)
 
-    # Kruisje midden
-    att_canvas.create_line(cx-28, cy, cx+28, cy, fill="white", width=4)
-    att_canvas.create_line(cx, cy-14, cx, cy+14, fill="white", width=4)
-
     # Mask: zwart buiten de cirkel
     cover = max(GAUGE_W, GAUGE_H)
     att_canvas.create_oval(cx - radius - cover, cy - radius - cover,
@@ -163,6 +159,18 @@ def draw_attitude(p, r):
     # Buitenste cirkel
     att_canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius,
                            outline="white", width=3)
+
+    # Vast vliegtuigsymbool - beweegt niet mee met horizon
+    lw = 4
+    wl = int(GR * 0.40)
+    wg = 12
+    wt = max(6, GR // 14)
+    att_canvas.create_line(cx - wg, cy, cx - wl, cy, fill="yellow", width=lw)
+    att_canvas.create_line(cx - wl, cy - wt, cx - wl, cy + wt, fill="yellow", width=lw)
+    att_canvas.create_line(cx + wg, cy, cx + wl, cy, fill="yellow", width=lw)
+    att_canvas.create_line(cx + wl, cy - wt, cx + wl, cy + wt, fill="yellow", width=lw)
+    att_canvas.create_oval(cx - 4, cy - 4, cx + 4, cy + 4, fill="yellow", outline="")
+    att_canvas.create_line(cx, cy - wg, cx, cy - wg - 12, fill="yellow", width=lw)
 
     lx, ly = rot90(cx, cy + radius + 20, cx, cy)
     att_canvas.create_text(lx, ly, text="ATTITUDE", fill="white",
