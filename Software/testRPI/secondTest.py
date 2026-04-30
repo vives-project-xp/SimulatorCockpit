@@ -117,7 +117,7 @@ def draw_attitude(p, r):
     offset = int(p * 2)
 
     horizon_g = cy + offset
-    rad_r = math.radians(r)
+    rad_r = math.radians(-r)
     margin = GAUGE_W + GAUGE_H
 
     hx1_g = cx - margin * math.cos(rad_r)
