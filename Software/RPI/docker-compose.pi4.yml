@@ -7,7 +7,9 @@ services:
     environment:
       MQTT_BROKER: 10.10.229.190
       MQTT_PORT: "1883"
-      DISPLAY: ${DISPLAY}
+      DISPLAY: ":0"
+      XAUTHORITY: /tmp/.xauthority
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
+      - ${XAUTHORITY:-/home/cockpit/.Xauthority}:/tmp/.xauthority:ro
     command: ["python3", "interface.py"]
