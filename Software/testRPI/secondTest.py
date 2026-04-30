@@ -2,7 +2,7 @@ import tkinter as tk
 import paho.mqtt.client as mqtt
 import math
 
-BROKER = "localhost"
+BROKER = "10.10.229.190"
 
 TOPIC_THROTTLE = "cockpit/input/throttle"
 TOPIC_BATTERY = "cockpit/input/battery"
