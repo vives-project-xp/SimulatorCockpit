@@ -61,15 +61,15 @@ def draw_airspeed_static():
                           outline="white", width=3, tags="static")
 
     def draw_zone(start, end, color):
-        sa = speed_to_angle_deg(start) + 180
-        ea = speed_to_angle_deg(end) + 180
+        sa = 90 - speed_to_angle_deg(start)
+        ea = 90 - speed_to_angle_deg(end)
         as_canvas.create_arc(cx-r, cy-r, cx+r, cy+r,
-                             start=sa - 90, extent=ea - sa,
+                             start=sa, extent=ea - sa,
                              style="arc", outline=color, width=10, tags="static")
 
     draw_zone(0, 120, "lime")
-    draw_zone(120, 140, "yellow")
-    draw_zone(140, 180, "red")
+    draw_zone(120, 160, "yellow")
+    draw_zone(160, 180, "red")
 
     for speed in range(0, TOTAL_SPEED + 1, 20):
         a_rad = math.radians(speed_to_angle_deg(speed))
@@ -86,9 +86,9 @@ def draw_airspeed_static():
 
         as_canvas.create_line(ix, iy, ox, oy, fill="white", width=2, tags="static")
         as_canvas.create_text(tx, ty, text=str(speed), fill="white",
-                              font=("Arial", max(9, GR // 14)), tags="static")
+                              font=("Arial", max(9, GR // 14)), angle=90, tags="static")
 
-    lx, ly = rot90(cx, cy + GR // 2 + 20, cx, cy)
+    lx, ly = rot90(cx, cy + GR + 20, cx, cy)
     as_canvas.create_text(lx, ly, text="AIRSPEED", fill="white",
                           font=("Arial", max(9, GR // 11), "bold"),
                           angle=90, tags="static")
