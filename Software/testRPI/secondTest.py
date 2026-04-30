@@ -154,6 +154,12 @@ def draw_attitude(p, r):
     att_canvas.create_line(cx-28, cy, cx+28, cy, fill="white", width=4)
     att_canvas.create_line(cx, cy-14, cx, cy+14, fill="white", width=4)
 
+    # Mask: zwart buiten de cirkel
+    cover = max(GAUGE_W, GAUGE_H)
+    att_canvas.create_oval(cx - radius - cover, cy - radius - cover,
+                           cx + radius + cover, cy + radius + cover,
+                           outline="black", width=cover * 2)
+
     # Buitenste cirkel
     att_canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius,
                            outline="white", width=3)
