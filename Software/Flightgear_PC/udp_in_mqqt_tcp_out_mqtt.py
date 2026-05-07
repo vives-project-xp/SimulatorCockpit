@@ -11,6 +11,9 @@ import os
 # =========================
 FG_TCP_IP = os.getenv("FG_TCP_IP", "127.0.0.1")
 FG_TCP_PORT = int(os.getenv("FG_TCP_PORT", "5600"))
+TCP_CONNECT_TIMEOUT = float(os.getenv("TCP_CONNECT_TIMEOUT", "2.0"))
+TCP_RECONNECT_INTERVAL = float(os.getenv("TCP_RECONNECT_INTERVAL", "1.0"))
+STATE_RESEND_INTERVAL = float(os.getenv("STATE_RESEND_INTERVAL", "1.0"))
 
 UDP_IP = os.getenv("UDP_IP", "127.0.0.1")
 UDP_PORT = int(os.getenv("UDP_PORT", "5500"))
@@ -25,13 +28,25 @@ MAGNETOS_SWITCH_TOPICS = {
     "cockpit/input/magnetos/switch2": 2,
     "cockpit/input/magnetos/switch3": 3,
 }
+INPUT_TOPICS = (
+    "cockpit/input/battery",
+    "cockpit/input/master-alt",
+    "cockpit/input/alt",
+    "cockpit/input/carb-heat",
+    *PRIMER_TOPICS,
+    MAGNETOS_ENABLE_TOPIC,
+    *MAGNETOS_SWITCH_TOPICS.keys(),
+    "cockpit/input/fuelmixer",
+)
 
 # =========================
 # TCP CONNECTIE (INPUT)
 # =========================
-tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-tcp_sock.connect((FG_TCP_IP, FG_TCP_PORT))
-print("[TCP] Verbonden met FlightGear")
+tcp_sock = None
+tcp_next_retry = 0.0
+tcp_last_error = ""
+tcp_lock = threading.Lock()
+state_lock = threading.Lock()
 
 # =========================
 # STATE
@@ -54,6 +69,106 @@ current_fuel_mixture = 0.0
 current_attitude_pitch = 0.0
 current_attitude_roll = 0.0
 old_hash = b""
+
+
+def close_tcp_socket():
+    global tcp_sock
+
+    if tcp_sock is None:
+        return
+
+    try:
+        tcp_sock.close()
+    except OSError:
+        pass
+
+    tcp_sock = None
+
+
+def ensure_tcp_connection():
+    global tcp_sock, tcp_next_retry, tcp_last_error
+
+    if tcp_sock is not None:
+        return True
+
+    now = time.monotonic()
+    if now < tcp_next_retry:
+        return False
+
+    sock = None
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(TCP_CONNECT_TIMEOUT)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        sock.connect((FG_TCP_IP, FG_TCP_PORT))
+        tcp_sock = sock
+        tcp_last_error = ""
+        tcp_next_retry = 0.0
+        print("[TCP] Verbonden met FlightGear")
+        return True
+    except OSError as exc:
+        if sock is not None:
+            try:
+                sock.close()
+            except OSError:
+                pass
+        close_tcp_socket()
+        tcp_next_retry = now + TCP_RECONNECT_INTERVAL
+        error_text = str(exc)
+        if error_text != tcp_last_error:
+            print(f"[TCP] Wachten op FlightGear ({FG_TCP_IP}:{FG_TCP_PORT}) - {error_text}")
+            tcp_last_error = error_text
+        return False
+
+
+def send_to_flightgear(datastr, log_send=True):
+    global tcp_next_retry
+
+    with tcp_lock:
+        if not ensure_tcp_connection():
+            return False
+
+        try:
+            tcp_sock.sendall(datastr.encode("utf-8"))
+        except (OSError, socket.timeout) as exc:
+            print(f"[TCP] Verbinding verloren, reconnect volgt - {exc}")
+            close_tcp_socket()
+            tcp_next_retry = 0.0
+            return False
+
+    if log_send:
+        print("[TCP SEND]", datastr.strip())
+
+    return True
+
+
+def build_datastr_unlocked():
+    starter_value = "1" if current_starter else "0"
+    return (
+        f"{current_battery}:{current_master_alt}:{current_carb_heat}:"
+        f"{current_primer_lever}:{current_primer}:{current_magnetos}:{starter_value}:{current_fuel_mixture}\n"
+    )
+
+
+def send_current_state(force=False, log_send=True):
+    global old_hash
+
+    with state_lock:
+        datastr = build_datastr_unlocked()
+        new_hash = hashlib.md5(datastr.encode()).digest()
+        if not force and new_hash == old_hash:
+            return
+
+    if send_to_flightgear(datastr, log_send=log_send):
+        with state_lock:
+            old_hash = new_hash
+
+
+def state_resend_loop():
+    while True:
+        send_current_state(force=True, log_send=False)
+        time.sleep(STATE_RESEND_INTERVAL)
 
 # =========================
 # MQTT CALLBACK
@@ -80,8 +195,12 @@ def calculate_starter():
 
 def reset_primer_state():
     global current_primer, primer_reset_timer
-    current_primer = 0
-    primer_reset_timer = None
+
+    with state_lock:
+        current_primer = 0
+        primer_reset_timer = None
+
+    send_current_state(force=True, log_send=True)
 
 
 def sync_primer_reset_timer(previous_starter, current_starter):
@@ -108,71 +227,78 @@ def on_message(client, userdata, msg):
     payload = msg.payload.decode().strip()
 
     try:
-        if topic == "cockpit/input/battery":
-            current_battery = int(payload)
+        with state_lock:
+            if topic == "cockpit/input/battery":
+                current_battery = int(payload)
 
-        elif topic in ("cockpit/input/master-alt", "cockpit/input/alt"):
-            current_master_alt = int(payload)
+            elif topic in ("cockpit/input/master-alt", "cockpit/input/alt"):
+                current_master_alt = int(payload)
 
-        elif topic == "cockpit/input/carb-heat":
-            current_carb_heat = int(payload)
+            elif topic == "cockpit/input/carb-heat":
+                current_carb_heat = int(payload)
 
-        elif topic in PRIMER_TOPICS:
-            new_primer_lever = int(payload)
-            if current_primer_lever == 1 and new_primer_lever == 0:
-                current_primer += 1
-            current_primer_lever = new_primer_lever
+            elif topic in PRIMER_TOPICS:
+                new_primer_lever = int(payload)
+                if current_primer_lever == 1 and new_primer_lever == 0:
+                    current_primer += 1
+                current_primer_lever = new_primer_lever
 
-        elif topic == MAGNETOS_ENABLE_TOPIC:
-            current_magnetos_enabled = int(payload)
+            elif topic == MAGNETOS_ENABLE_TOPIC:
+                current_magnetos_enabled = int(payload)
 
-        elif topic in MAGNETOS_SWITCH_TOPICS:
-            switch_number = MAGNETOS_SWITCH_TOPICS[topic]
-            current_magnetos_switches[switch_number] = int(payload)
+            elif topic in MAGNETOS_SWITCH_TOPICS:
+                switch_number = MAGNETOS_SWITCH_TOPICS[topic]
+                current_magnetos_switches[switch_number] = int(payload)
 
-        elif topic == "cockpit/input/fuelmixer":
-            current_fuel_mixture = float(payload)
+            elif topic == "cockpit/input/fuelmixer":
+                current_fuel_mixture = float(payload)
+
+            current_magnetos = calculate_magnetos()
+            previous_starter = current_starter
+            current_starter = calculate_starter()
+            sync_primer_reset_timer(previous_starter, current_starter)
 
     except ValueError:
         return
 
-    current_magnetos = calculate_magnetos()
-    previous_starter = current_starter
-    current_starter = calculate_starter()
-    sync_primer_reset_timer(previous_starter, current_starter)
-    starter_value = "1" if current_starter else "0"
+    send_current_state(log_send=True)
 
-    # BELANGRIJK: volgorde moet exact overeenkomen met XML chunks
-    datastr = (
-        f"{current_battery}:{current_master_alt}:{current_carb_heat}:"
-        f"{current_primer_lever}:{current_primer}:{current_magnetos}:{starter_value}:{current_fuel_mixture}\n"
-    )
 
-    new_hash = hashlib.md5(datastr.encode()).digest()
+def on_connect(client, userdata, flags, reason_code, properties=None):
+    if reason_code != 0:
+        print(f"[MQTT] Verbinden mislukt: {reason_code}")
+        return
 
-    if new_hash != old_hash:
-        tcp_sock.sendall(datastr.encode("utf-8"))
-        print("[TCP SEND]", datastr.strip())
-        old_hash = new_hash
+    for topic in INPUT_TOPICS:
+        client.subscribe(topic)
+
+    print("[MQTT] Verbonden met broker")
+
+
+def on_disconnect(client, userdata, reason_code, properties=None):
+    print(f"[MQTT] Verbinding verbroken: {reason_code}")
 
 # =========================
 # MQTT SETUP
 # =========================
 mqtt_client = mqtt.Client()
+mqtt_client.on_connect = on_connect
+mqtt_client.on_disconnect = on_disconnect
 mqtt_client.on_message = on_message
-mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
-mqtt_client.subscribe("cockpit/input/battery")
-mqtt_client.subscribe("cockpit/input/master-alt")
-mqtt_client.subscribe("cockpit/input/alt")
-mqtt_client.subscribe("cockpit/input/carb-heat")
-for primer_topic in PRIMER_TOPICS:
-    mqtt_client.subscribe(primer_topic)
-mqtt_client.subscribe(MAGNETOS_ENABLE_TOPIC)
-for magnetos_switch_topic in MAGNETOS_SWITCH_TOPICS:
-    mqtt_client.subscribe(magnetos_switch_topic)
-mqtt_client.subscribe("cockpit/input/fuelmixer")
+mqtt_client.reconnect_delay_set(min_delay=1, max_delay=10)
+
+while True:
+    try:
+        mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
+        break
+    except OSError as exc:
+        print(f"[MQTT] Wachten op broker ({MQTT_BROKER}:{MQTT_PORT}) - {exc}")
+        time.sleep(2)
+
 mqtt_client.loop_start()
-print("[MQTT] Verbonden met broker")
+
+resend_thread = threading.Thread(target=state_resend_loop, daemon=True)
+resend_thread.start()
 
 # =========================
 # UDP LISTENER (OUTPUT)
@@ -180,7 +306,12 @@ print("[MQTT] Verbonden met broker")
 def udp_listener():
     global current_attitude_pitch, current_attitude_roll
     udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_sock.bind((UDP_IP, UDP_PORT))
+    try:
+        udp_sock.bind((UDP_IP, UDP_PORT))
+    except OSError as exc:
+        print(f"[UDP] Kan niet luisteren op {UDP_IP}:{UDP_PORT} - {exc}")
+        return
+
     print(f"[UDP] Luisteren op {UDP_IP}:{UDP_PORT}")
 
     while True:
