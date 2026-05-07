@@ -26,8 +26,8 @@ TOTAL_SPEED = 180
 
 root = tk.Tk()
 root.title("COCKPIT")
-root.attributes("-fullscreen", True)
 root.configure(bg="black")
+root.after(500, lambda: root.attributes("-fullscreen", True))
 root.update_idletasks()
 
 SCREEN_W = root.winfo_screenwidth()
@@ -90,7 +90,7 @@ def draw_airspeed_static():
         as_canvas.create_text(tx, ty, text=str(speed), fill="white",
                               font=("Arial", max(9, GR // 14)), angle=90, tags="static")
 
-    lx, ly = rot90(cx, cy + GR + 20, cx, cy)
+    lx, ly = rot90(cx, cy + GR + 30, cx, cy)
     as_canvas.create_text(lx, ly, text="AIRSPEED", fill="white",
                           font=("Arial", max(9, GR // 11), "bold"),
                           angle=90, tags="static")
