@@ -90,7 +90,7 @@ def draw_airspeed_static():
         as_canvas.create_text(tx, ty, text=str(speed), fill="white",
                               font=("Arial", max(9, GR // 14)), angle=90, tags="static")
 
-    lx, ly = rot90(cx, cy + GR + 20, cx, cy)
+    lx, ly = rot90(cx, cy + GR + 30, cx, cy)
     as_canvas.create_text(lx, ly, text="AIRSPEED", fill="white",
                           font=("Arial", max(9, GR // 11), "bold"),
                           angle=90, tags="static")
@@ -273,6 +273,14 @@ def update_ui():
     draw_compass(display_heading)
     draw_attitude(pitch, roll)
     root.after(50, update_ui)
+
+def on_close():
+    client.loop_stop()
+    client.disconnect()
+    root.destroy()
+
+root.bind("<Control-c>", lambda _: on_close())
+root.protocol("WM_DELETE_WINDOW", on_close)
 
 update_ui()
 root.mainloop()
