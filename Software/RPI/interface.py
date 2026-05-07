@@ -26,8 +26,8 @@ TOTAL_SPEED = 180
 
 root = tk.Tk()
 root.title("COCKPIT")
-root.attributes("-fullscreen", True)
 root.configure(bg="black")
+root.after(500, lambda: root.attributes("-fullscreen", True))
 root.update_idletasks()
 
 SCREEN_W = root.winfo_screenwidth()
