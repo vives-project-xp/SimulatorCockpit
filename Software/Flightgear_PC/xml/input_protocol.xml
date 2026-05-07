@@ -32,15 +32,21 @@
       </chunk>
 
       <chunk>
+        <name>Primer</name>
+        <node>/controls/engines/engine/primer</node>
+        <type>integer</type>
+      </chunk>
+
+      <chunk>
         <name>Magnetos</name>
         <node>/controls/switches/magnetos</node>
         <type>integer</type>
       </chunk>
 
       <chunk>
-        <name>Throttle</name>
-        <node>/controls/engines/engine[0]/throttle</node>
-        <type>float</type>
+        <name>Starter</name>
+        <node>/controls/switches/starter</node>
+        <type>bool</type>
       </chunk>
 
       <chunk>
