@@ -20,6 +20,7 @@ TOPIC_SWITCH_1 = "cockpit/input/magnetos/switch1"
 TOPIC_SWITCH_2 = "cockpit/input/magnetos/switch2"
 TOPIC_SWITCH_3 = "cockpit/input/magnetos/switch3"
 TOPIC_SLEUTEL = "cockpit/input/magnetos/sleutel"  # aanpassen sleutel
+TOPIC_FUELMIXER = "cockpit/input/fuelmixer"
 
 BUTTON_PIN = 17
 TOGGLE_BUTTON_PIN = 27
@@ -30,6 +31,7 @@ PRIMER_PIN = 18
 SWITCH_1_PIN = 24
 SWITCH_2_PIN = 25
 SWITCH_3_PIN = 5
+FUELMIXER_PIN = 6
 
 # ========================
 # GPIO SETUP
@@ -45,6 +47,7 @@ lgpio.gpio_claim_input(chip, PRIMER_PIN, lgpio.SET_PULL_UP)
 lgpio.gpio_claim_input(chip, SWITCH_1_PIN, lgpio.SET_PULL_UP)
 lgpio.gpio_claim_input(chip, SWITCH_2_PIN, lgpio.SET_PULL_UP)
 lgpio.gpio_claim_input(chip, SWITCH_3_PIN, lgpio.SET_PULL_UP)
+lgpio.gpio_claim_input(chip, FUELMIXER_PIN, lgpio.SET_PULL_UP)
 
 # ========================
 # MQTT
@@ -69,6 +72,7 @@ last_primer_gpio = 1
 last_switch_1_state = None
 last_switch_2_state = None
 last_switch_3_state = None
+last_fuelmixer_state = None
 
 try:
     while True:
@@ -162,6 +166,17 @@ try:
             client.publish(TOPIC_SWITCH_3, str(state))
             print("Switch3:", state)
             last_switch_3_state = state
+
+        # ========================
+        # FUELMIXER
+        # ========================
+        val = lgpio.gpio_read(chip, FUELMIXER_PIN)
+        state = 0 if val == 1 else 1
+
+        if state != last_fuelmixer_state:
+            client.publish(TOPIC_FUELMIXER, str(state))
+            print("Fuelmixer:", state)
+            last_fuelmixer_state = state
 
         time.sleep(0.05)
 
