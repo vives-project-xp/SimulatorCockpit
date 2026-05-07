@@ -47,6 +47,7 @@ current_magnetos_switches = {
 }
 current_magnetos = 0
 current_throttle = 0.0
+current_fuel_mixture = 0.0
 current_attitude_pitch = 0.0
 current_attitude_roll = 0.0
 old_hash = b""
@@ -72,7 +73,7 @@ def calculate_magnetos():
 
 def on_message(client, userdata, msg):
     global current_battery, current_master_alt, current_carb_heat, current_primer_lever
-    global current_magnetos_enabled, current_magnetos, current_throttle, old_hash
+    global current_magnetos_enabled, current_magnetos, current_throttle, current_fuel_mixture, old_hash
 
     topic = msg.topic
     payload = msg.payload.decode().strip()
@@ -100,6 +101,9 @@ def on_message(client, userdata, msg):
         elif topic == "cockpit/input/throttle":
             current_throttle = float(payload)
 
+        elif topic == "cockpit/input/fuelmixer":
+            current_fuel_mixture = float(payload)
+
     except ValueError:
         return
 
@@ -108,7 +112,7 @@ def on_message(client, userdata, msg):
     # BELANGRIJK: volgorde moet exact overeenkomen met XML chunks
     datastr = (
         f"{current_battery}:{current_master_alt}:{current_carb_heat}:"
-        f"{current_primer_lever}:{current_magnetos}:{current_throttle}\n"
+        f"{current_primer_lever}:{current_magnetos}:{current_throttle}:{current_fuel_mixture}\n"
     )
 
     new_hash = hashlib.md5(datastr.encode()).digest()
@@ -134,6 +138,7 @@ mqtt_client.subscribe(MAGNETOS_ENABLE_TOPIC)
 for magnetos_switch_topic in MAGNETOS_SWITCH_TOPICS:
     mqtt_client.subscribe(magnetos_switch_topic)
 mqtt_client.subscribe("cockpit/input/throttle")
+mqtt_client.subscribe("cockpit/input/fuelmixer")
 mqtt_client.loop_start()
 print("[MQTT] Verbonden met broker")
 

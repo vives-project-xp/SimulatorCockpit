@@ -43,6 +43,12 @@
         <type>float</type>
       </chunk>
 
+      <chunk>
+        <name>FuelMixture</name>
+        <node>/controls/engines/current-engine/mixture</node>
+        <type>float</type>
+      </chunk>
+
     </input>
   </generic>
 
