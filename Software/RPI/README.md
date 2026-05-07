@@ -15,6 +15,18 @@ Je hoeft dus normaal gezien **niet** zelf een virtual environment te maken, **ni
 
 Gebruik gewoon de Docker setup.
 
+## Over de namen `pi4` en `pi5`
+
+In deze repo verwijzen `pi4` en `pi5` vooral naar de **rol** van de Raspberry Pi:
+
+- `pi5`: broker + knoppen
+- `pi4`: scherminterface
+
+Dat betekent dat de naamgeving op zich niet het belangrijkste is. Je kunt die rollen ook op een andere Raspberry Pi draaien, zolang de hardware past:
+
+- de **broker/knoppen-Pi** moet GPIO kunnen gebruiken
+- de **interface-Pi** moet een desktop/display omgeving hebben
+
 ## Pi 5 starten met Docker
 
 Vanaf de root van de repo:
@@ -49,14 +61,14 @@ sudo docker compose -f docker-compose.pi5.yml logs -f
 
 ## Pi 4 starten met Docker
 
-Voor de Pi 4 interface:
+Voor de interface-Pi:
 
 ```bash
 cd ~/SimCockpit/SimulatorCockpit
 bash install/pi4.sh
 ```
 
-De Pi 4 moet de Pi 5 broker kunnen bereiken op `10.10.229.190:1883`.
+De interface-Pi moet de broker/knoppen-Pi kunnen bereiken op `10.10.229.190:1883`.
 
 ## Handmatig starten zonder Docker
 

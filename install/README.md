@@ -2,6 +2,18 @@
 
 Deze scripts zijn bedoeld voor een nieuwe Raspberry Pi OS flash waar de repo al op staat.
 
+## Belangrijk
+
+De namen `pi4` en `pi5` in deze repo verwijzen vooral naar de **rol** van de Raspberry Pi in het project:
+
+- `pi5`: de Pi die de **knoppen en MQTT broker** draait
+- `pi4`: de Pi die de **interface op het scherm** draait
+
+Je kunt die rollen in principe ook op een andere Raspberry Pi uitvoeren, zolang de hardware past bij de taak:
+
+- de **buttons/broker Pi** moet GPIO kunnen gebruiken
+- de **interface Pi** moet een desktop/display omgeving hebben
+
 ## Pi 5: broker + knoppen
 
 ```bash
@@ -38,11 +50,11 @@ Dit doet:
 - Een desktop autostart entry maken
 - De interface starten na grafische login
 
-De Pi 4 moet de Pi 5 broker kunnen bereiken op `10.10.229.190:1883`.
+De interface-Pi moet de broker-Pi kunnen bereiken op `10.10.229.190:1883`.
 
 ## Eerste test
 
-Op de Pi 5:
+Op de broker/knoppen-Pi:
 
 ```bash
 cd ~/SimCockpit/SimulatorCockpit/Software/RPI
