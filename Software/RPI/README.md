@@ -7,9 +7,62 @@ Deze map bevat de Pi-kant van het cockpitproject:
 - `docker-compose.pi5.yml`: Pi 5 setup met Mosquitto en `buttons.py`
 - `docker-compose.pi4.yml`: Pi 4 setup voor de interface
 
-## Python setup zonder Docker
+## Belangrijk
 
-Maak een virtual environment aan met toegang tot system packages voor GPIO:
+Voor dit project is Docker de standaardmanier om alles te starten.
+
+Je hoeft dus normaal gezien **niet** zelf een virtual environment te maken, **niet** handmatig `mosquitto` te installeren, en **niet** apart `buttons.py` te starten.
+
+Gebruik gewoon de Docker setup.
+
+## Pi 5 starten met Docker
+
+Vanaf de root van de repo:
+
+```bash
+cd ~/SimCockpit/SimulatorCockpit
+bash install/pi5.sh
+```
+
+Dit script doet:
+
+- Docker installeren als het nog niet bestaat
+- Docker automatisch laten starten bij boot
+- de MQTT broker starten
+- `buttons.py` starten
+- alles via Docker Compose opzetten
+
+Na installatie kun je de status bekijken met:
+
+```bash
+cd ~/SimCockpit/SimulatorCockpit/Software/RPI
+docker compose -f docker-compose.pi5.yml ps
+docker compose -f docker-compose.pi5.yml logs -f
+```
+
+Als Docker nog `sudo` nodig heeft:
+
+```bash
+sudo docker compose -f docker-compose.pi5.yml ps
+sudo docker compose -f docker-compose.pi5.yml logs -f
+```
+
+## Pi 4 starten met Docker
+
+Voor de Pi 4 interface:
+
+```bash
+cd ~/SimCockpit/SimulatorCockpit
+bash install/pi4.sh
+```
+
+De Pi 4 moet de Pi 5 broker kunnen bereiken op `10.10.229.190:1883`.
+
+## Handmatig starten zonder Docker
+
+Doe dit alleen als je bewust zonder Docker wil werken.
+
+### Python omgeving
 
 ```bash
 python3 -m venv --system-site-packages venv
@@ -37,7 +90,7 @@ sudo apt update
 sudo apt install python3-tk
 ```
 
-## Mosquitto zonder Docker
+### Mosquitto zonder Docker
 
 ```bash
 sudo apt update
