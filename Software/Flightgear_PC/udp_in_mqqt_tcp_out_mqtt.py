@@ -239,7 +239,12 @@ def on_message(client, userdata, msg):
 
             elif topic in PRIMER_TOPICS:
                 new_primer_lever = int(payload)
-                if current_primer_lever == 1 and new_primer_lever == 0:
+                if topic == "cockpit/input/primer":
+                    # The physical primer button publishes one toggled value per press,
+                    # so each message represents a single prime action.
+                    if new_primer_lever != current_primer_lever:
+                        current_primer += 1
+                elif current_primer_lever == 1 and new_primer_lever == 0:
                     current_primer += 1
                 current_primer_lever = new_primer_lever
 
