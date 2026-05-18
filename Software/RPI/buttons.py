@@ -67,19 +67,7 @@ last_extra_state = None
 last_sleutel_state = None
 
 primer_state = 0
-last_primer_time = 0
-
-def on_primer_press(_chip_id, _gpio, level, _tick):
-    global primer_state, last_primer_time
-    now = time.monotonic()
-    if level == 0 and (now - last_primer_time) > 0.08:
-        primer_state = 1 - primer_state
-        client.publish(TOPIC_PRIMER, str(primer_state))
-        print("Primer:", primer_state)
-        last_primer_time = now
-
-lgpio.gpio_claim_alert(chip, PRIMER_PIN, lgpio.FALLING_EDGE)
-lgpio.callback(chip, PRIMER_PIN, lgpio.FALLING_EDGE, on_primer_press)
+last_primer_gpio = 1
 
 last_switch_1_state = None
 last_switch_2_state = None
@@ -135,6 +123,17 @@ try:
 
         # ========================
         # PRIMER
+        # ========================
+        val = lgpio.gpio_read(chip, PRIMER_PIN)
+
+        if val == 0 and last_primer_gpio == 1:
+            primer_state = 0 if primer_state == 1 else 1
+            client.publish(TOPIC_PRIMER, str(primer_state))
+            print("Primer:", primer_state)
+            time.sleep(0.2)
+
+        last_primer_gpio = val
+
         # ========================
         # SWITCH 1
         # ========================
