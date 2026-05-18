@@ -2,9 +2,7 @@
 
 ## Het paneel
 
-> Plaats de foto van het paneel hieronder (sla de foto op als `paneel.jpg` in deze map):
-
-![Cockpit paneel](paneel.jpg)
+![Cockpit paneel met labels](paneel_annotated.jpg)
 
 ### Overzicht van de knoppen
 

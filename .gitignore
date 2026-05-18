@@ -17,6 +17,9 @@ venv/
 .idea/
 *.code-workspace
 
+# Claude Code
+.claude/
+
 # OS files
 Thumbs.db
 Desktop.ini
