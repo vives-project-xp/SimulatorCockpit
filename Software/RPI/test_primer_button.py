@@ -4,42 +4,20 @@ import lgpio
 
 
 PRIMER_PIN = 18
-POLL_INTERVAL_SECONDS = 0.01
-DEBOUNCE_SECONDS = 0.05
 
 
 def main():
     chip = lgpio.gpiochip_open(0)
     lgpio.gpio_claim_input(chip, PRIMER_PIN, lgpio.SET_PULL_UP)
 
-    last_gpio_value = lgpio.gpio_read(chip, PRIMER_PIN)
-    last_change_time = time.monotonic()
-    press_count = 0
-
-    print(f"Primer test gestart op GPIO{PRIMER_PIN}.")
-    print("Druk op de knop. Stop met Ctrl+C.")
-    print("Verwacht gedrag: idle = 1, ingedrukt = 0.")
+    print(f"GPIO{PRIMER_PIN} test gestart. Stop met Ctrl+C.")
 
     try:
         while True:
-            gpio_value = lgpio.gpio_read(chip, PRIMER_PIN)
-
-            if gpio_value != last_gpio_value:
-                now = time.monotonic()
-                if now - last_change_time >= DEBOUNCE_SECONDS:
-                    last_change_time = now
-                    last_gpio_value = gpio_value
-
-                    if gpio_value == 0:
-                        press_count += 1
-                        print(f"[{press_count}] INGEDRUKT  gpio={gpio_value}")
-                    else:
-                        print(f"    LOSGELATEN gpio={gpio_value}")
-
-            time.sleep(POLL_INTERVAL_SECONDS)
-
+            print(lgpio.gpio_read(chip, PRIMER_PIN))
+            time.sleep(0.1)
     except KeyboardInterrupt:
-        print(f"\nGestopt. Gedetecteerde drukken: {press_count}")
+        print("\nGestopt.")
     finally:
         lgpio.gpiochip_close(chip)
 
