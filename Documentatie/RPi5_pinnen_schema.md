@@ -12,7 +12,7 @@ Alle inputs gebruiken `lgpio.SET_PULL_UP`. Sluit daarom elke knop/schakelaar aan
 | Carb heat | `TOGGLE_BUTTON_PIN` | `cockpit/input/carb-heat` | GPIO27 | pin 13 | schakelaar tussen pin 13 en GND |
 | Master alternator | `EXTRA_BUTTON_PIN` | `cockpit/input/alt` | GPIO22 | pin 15 | schakelaar tussen pin 15 en GND |
 | Magnetos sleutel | `SLEUTEL_PIN` | `cockpit/input/magnetos/sleutel` | GPIO23 | pin 16 | schakelaar tussen pin 16 en GND |
-| Primer | `PRIMER_PIN` | `cockpit/input/primer` | GPIO18 | pin 12 | drukknop tussen pin 12 en GND |
+| Primer | `PRIMER_PIN` | `cockpit/input/primer` | GPIO16 | pin 36 | drukknop tussen pin 36 en GND |
 | Magnetos switch 1 | `SWITCH_1_PIN` | `cockpit/input/magnetos/switch1` | GPIO24 | pin 18 | schakelaar tussen pin 18 en GND |
 | Magnetos switch 2 | `SWITCH_2_PIN` | `cockpit/input/magnetos/switch2` | GPIO25 | pin 22 | schakelaar tussen pin 22 en GND |
 | Magnetos switch 3 | `SWITCH_3_PIN` | `cockpit/input/magnetos/switch3` | GPIO5 | pin 29 | schakelaar tussen pin 29 en GND |
@@ -69,7 +69,7 @@ Linker rij                 Rechter rij
  5  GPIO3   ADS SCL        6  GND     ADS GND
  7  GPIO4                  8  GPIO14
  9  GND                   10  GPIO15
-11  GPIO17  Battery       12  GPIO18  Primer
+11  GPIO17  Battery       12  GPIO18
 13  GPIO27  Carb heat     14  GND
 15  GPIO22  Master alt    16  GPIO23  Magnetos sleutel
 17  3V3                   18  GPIO24  Magnetos switch 1
@@ -81,7 +81,7 @@ Linker rij                 Rechter rij
 29  GPIO5   Mag. switch 3 30  GND
 31  GPIO6                 32  GPIO12
 33  GPIO13                34  GND
-35  GPIO19                36  GPIO16
+35  GPIO19                36  GPIO16  Primer
 37  GPIO26                38  GPIO20
 39  GND                   40  GPIO21
 ```

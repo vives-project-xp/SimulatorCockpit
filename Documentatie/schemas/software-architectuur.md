@@ -21,7 +21,7 @@ flowchart TD
         CARB["Carb-heat schakelaar\nGPIO 27"]
         ALT["Alt schakelaar\nGPIO 22"]
         SLEUTEL["Sleutel (magneto)\nGPIO 23"]
-        PRIMER["Primer knop\nGPIO 18"]
+        PRIMER["Primer knop\nGPIO 16"]
         SW1["Switch 1 (magneto)\nGPIO 24"]
         SW2["Switch 2 (magneto)\nGPIO 25"]
         SW3["Switch 3 (magneto)\nGPIO 5"]
