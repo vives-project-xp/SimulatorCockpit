@@ -130,9 +130,14 @@ try:
             primer_state = 0 if primer_state == 1 else 1
             client.publish(TOPIC_PRIMER, str(primer_state))
             print("Primer:", primer_state)
-            time.sleep(0.2)
+            # Wacht tot knop losgelaten is (max 1s)
+            timeout = 100
+            while lgpio.gpio_read(chip, PRIMER_PIN) == 0 and timeout > 0:
+                time.sleep(0.01)
+                timeout -= 1
+            time.sleep(0.05)  # korte debounce na loslaten
 
-        last_primer_gpio = val
+        last_primer_gpio = lgpio.gpio_read(chip, PRIMER_PIN)
 
         # ========================
         # SWITCH 1
