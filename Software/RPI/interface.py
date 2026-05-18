@@ -255,9 +255,12 @@ def on_message(mqttclient, userdata, msg):
             pass
 
 client.on_message = on_message
-client.connect(BROKER, MQTT_PORT, 60)
-client.subscribe(TOPIC_MONITOR)
-client.loop_start()
+try:
+    client.connect(BROKER, MQTT_PORT, 60)
+    client.subscribe(TOPIC_MONITOR)
+    client.loop_start()
+except Exception:
+    pass
 
 # ================= UPDATE LOOP =================
 
