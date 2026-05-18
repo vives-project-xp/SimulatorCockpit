@@ -11,10 +11,15 @@ def main():
     lgpio.gpio_claim_input(chip, PRIMER_PIN, lgpio.SET_PULL_UP)
 
     print(f"GPIO{PRIMER_PIN} test gestart. Stop met Ctrl+C.")
+    last_value = lgpio.gpio_read(chip, PRIMER_PIN)
+    print(last_value)
 
     try:
         while True:
-            print(lgpio.gpio_read(chip, PRIMER_PIN))
+            value = lgpio.gpio_read(chip, PRIMER_PIN)
+            if value != last_value:
+                print(value)
+                last_value = value
             time.sleep(0.1)
     except KeyboardInterrupt:
         print("\nGestopt.")
