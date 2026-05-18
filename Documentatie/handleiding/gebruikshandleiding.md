@@ -9,12 +9,12 @@
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                                                                     │
-│  [PRIMER]   [BATTERY 1]  [BATTERY 2]       [FUEL    [CARB         │
-│  rond knop  HIGH/LOW     I / O              MIXER]   HEATER]       │
+│  [PRIMER]   [BATTERY 1]  [BATTERY 2]       [FUEL    [CARB           │
+│  rond knop  HIGH/LOW     I / O              MIXTER]   HEATER]       │
 │  links                                      klein    groot rond     │
-│                                             knopje   knop rechts   │
-│             [SW 1] [SW 2] [SW 3]  [SLEUTEL]                       │
-│              magneto schakelaars   sleutelslot                     │
+│                                             knopje   knop rechts    │
+│             [SW 1] [SW 2] [SW 3]  [SLEUTEL]                         │
+│              magneto schakelaars   sleutelslot                      │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -28,7 +28,7 @@
 | 5 | **Switch 2** | Kleine rocker — magneto | Midden van sleutel |
 | 6 | **Switch 3** | Kleine rocker — magneto | Rechts van sleutel |
 | 7 | **Sleutel** | Sleutelslot — motor starten | Midden-onder |
-| 8 | **Fuel Mixer** | Klein schakelaarknopje | Rechts van midden |
+| 8 | **Fuel Mixter** | Klein schakelaarknopje | Rechts van midden |
 | 9 | **Carb Heater** | Groot rond knopje | Helemaal rechts |
 
 ---
@@ -65,7 +65,7 @@ Volg deze stappen **in volgorde** om de motor te starten:
 
 ---
 
-### Stap 4 — Fuel Mixer aanzetten
+### Stap 4 — Fuel Mixter aanzetten
 
 > Zet het **kleine schakelaarknopje (Fuel Mixer)** aan.
 
@@ -102,7 +102,7 @@ Volg deze stappen **in volgorde** om de motor te starten:
 2. Alternate Battery AAN  ──► naast Battery 1
 3. Primer 6x      ──► rond knopje links, 6 keer indrukken
 4. Carb Heater 2x ──► groot rond knopje rechts, 2x indrukken
-5. Fuel Mixer AAN ──► klein schakelaarknopje midden-rechts
+5. Fuel Mixter AAN ──► klein schakelaarknopje midden-rechts
 6. SW1 + SW2 + SW3 AAN ──► 3 kleine knoppen naast sleutel
 7. Sleutel vasthouden ──► draaien en vasthouden → motor start
 ```
