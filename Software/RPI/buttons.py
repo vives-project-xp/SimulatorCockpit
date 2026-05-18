@@ -68,6 +68,7 @@ last_sleutel_state = None
 
 primer_state = 0
 last_primer_gpio = 1
+last_primer_time = 0
 
 last_switch_1_state = None
 last_switch_2_state = None
@@ -125,19 +126,15 @@ try:
         # PRIMER
         # ========================
         val = lgpio.gpio_read(chip, PRIMER_PIN)
+        now = time.monotonic()
 
-        if val == 0 and last_primer_gpio == 1:
+        if val == 0 and last_primer_gpio == 1 and (now - last_primer_time) > 0.3:
             primer_state = 0 if primer_state == 1 else 1
             client.publish(TOPIC_PRIMER, str(primer_state))
             print("Primer:", primer_state)
-            # Wacht tot knop losgelaten is (max 1s)
-            timeout = 100
-            while lgpio.gpio_read(chip, PRIMER_PIN) == 0 and timeout > 0:
-                time.sleep(0.01)
-                timeout -= 1
-            time.sleep(0.05)  # korte debounce na loslaten
+            last_primer_time = now
 
-        last_primer_gpio = lgpio.gpio_read(chip, PRIMER_PIN)
+        last_primer_gpio = val
 
         # ========================
         # SWITCH 1
