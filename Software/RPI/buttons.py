@@ -68,7 +68,6 @@ last_sleutel_state = None
 
 primer_state = 0
 last_primer_gpio = 1
-last_primer_time = 0
 
 last_switch_1_state = None
 last_switch_2_state = None
@@ -126,13 +125,12 @@ try:
         # PRIMER
         # ========================
         val = lgpio.gpio_read(chip, PRIMER_PIN)
-        now = time.monotonic()
 
-        if val == 0 and last_primer_gpio == 1 and (now - last_primer_time) > 0.3:
+        if val == 0 and last_primer_gpio == 1:
             primer_state = 0 if primer_state == 1 else 1
             client.publish(TOPIC_PRIMER, str(primer_state))
             print("Primer:", primer_state)
-            last_primer_time = now
+            time.sleep(0.2)
 
         last_primer_gpio = val
 
