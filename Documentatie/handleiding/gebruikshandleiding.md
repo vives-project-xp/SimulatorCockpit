@@ -2,34 +2,9 @@
 
 ## Het paneel
 
-![Cockpit paneel met labels](paneel_annotated.jpg)
+![Cockpit paneel met labels](paneelNames.jpg)
 
-### Overzicht van de knoppen
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                                                                     │
-│  [PRIMER]   [BATTERY 1]  [BATTERY 2]       [FUEL    [CARB           │
-│  rond knop  HIGH/LOW     I / O              MIXTER]   HEATER]       │
-│  links                                      klein    groot rond     │
-│                                             knopje   knop rechts    │
-│             [SW 1] [SW 2] [SW 3]  [SLEUTEL]                         │
-│              magneto schakelaars   sleutelslot                      │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-| Nr | Naam | Beschrijving | Positie |
-|----|------|-------------|---------|
-| 1 | **Battery 1** | Grote rocker schakelaar (HIGH/LOW SPEED) | Linksboven |
-| 2 | **Alternate Battery** | Grote rocker schakelaar (I / O) | Naast Battery 1 |
-| 3 | **Primer** | Rond knopje, indrukbaar | Helemaal links |
-| 4 | **Switch 1** | Kleine rocker — magneto | Links van sleutel |
-| 5 | **Switch 2** | Kleine rocker — magneto | Midden van sleutel |
-| 6 | **Switch 3** | Kleine rocker — magneto | Rechts van sleutel |
-| 7 | **Sleutel** | Sleutelslot — motor starten | Midden-onder |
-| 8 | **Fuel Mixter** | Klein schakelaarknopje | Rechts van midden |
-| 9 | **Carb Heater** | Groot rond knopje | Helemaal rechts |
 
 ---
 
