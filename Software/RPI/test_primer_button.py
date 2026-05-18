@@ -3,7 +3,7 @@ import time
 import lgpio
 
 
-PRIMER_PIN = 18
+PRIMER_PIN = 16
 
 
 def main():
