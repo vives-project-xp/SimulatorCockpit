@@ -2,7 +2,7 @@
 
 Deze map bevat de pc-kant van het cockpitproject:
 
-- `udp_in_mqqt_tcp_out_mqtt.py`: bridge tussen MQTT en FlightGear
+- `flightgear_mqtt_bridge.py`: bridge tussen MQTT en FlightGear
 - `xml/input_protocol.xml`: inkomend FlightGear generic input protocol
 - `xml/udp_out.xml`: uitgaand FlightGear generic output protocol
 
@@ -44,7 +44,7 @@ pip install -r requirements.txt
 ### 4. Start de bridge
 
 ```powershell
-python udp_in_mqqt_tcp_out_mqtt.py
+python flightgear_mqtt_bridge.py
 ```
 
 ## Opmerking

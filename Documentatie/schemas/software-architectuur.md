@@ -49,7 +49,7 @@ flowchart TD
     %% ─── PC ───
     subgraph PC["PC (FlightGear)"]
         direction TB
-        BRIDGE["udp_in_mqtt_tcp_out_mqtt.py\nBrug tussen MQTT en FlightGear"]
+        BRIDGE["flightgear_mqtt_bridge.py\nBrug tussen MQTT en FlightGear"]
         FG["FlightGear\nVluchtsimulatorsoftware"]
     end
 
