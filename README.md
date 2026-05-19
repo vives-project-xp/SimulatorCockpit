@@ -2,6 +2,8 @@
 
 Simulator Cockpit is een schoolproject rond een fysieke cockpit die met FlightGear praat via MQTT, GPIO en custom socket protocols.
 
+![Result](Documentatie/Result.png)
+
 ## Structuur
 
 - `Software/Flightgear_PC`: bridge tussen FlightGear, MQTT en cockpitinputs
